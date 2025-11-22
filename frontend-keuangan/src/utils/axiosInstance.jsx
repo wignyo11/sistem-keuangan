@@ -1,14 +1,19 @@
-// File: src/utils/axiosInstance.jsx
-// (File BARU - "Axios Pinter" kita)
-
 import axios from 'axios';
-import { applyAuthTokenInterceptor } from 'axios-jwt';
+import { applyAuthTokenInterceptor } from 'axios-jwt'; 
+// Deteksi otomatis:
+// Kalau mode DEV (Laptop) -> Pake localhost
+// Kalau mode PROD (Railway) -> Pake alamat website sendiri (kosongin)
+const baseURL = import.meta.env.DEV 
+  ? 'http://127.0.0.1:8000' 
+  : ''; 
 
-const baseURL = 'http://127.0.0.1:8000'; // API Backend kita
-
-// 1. Bikin 'instance' axios
 const axiosInstance = axios.create({
-    baseURL: baseURL
+    baseURL: baseURL, 
+    timeout: 5000,
+    headers: {
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+    },
 });
 
 // 2. Fungsi untuk dapet "kunci" dari brankas (localStorage)
