@@ -1,8 +1,9 @@
 // File: src/pages/InputSalesReturn.jsx
+// (VERSI ADAPTIF TEMA: Support Dark Mode & Light Mode Otomatis)
 
 import React, { useState, useEffect } from 'react';
 import {
-  Form, Button, DatePicker, InputNumber, Typography, message, Card, Select, Row, Col, Divider, Space
+  Form, Button, DatePicker, InputNumber, Typography, message, Card, Select, Row, Col, Divider, theme
 } from 'antd';
 import { DeleteOutlined, PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
@@ -19,6 +20,9 @@ const InputSalesReturn = () => {
   const [customers, setCustomers] = useState([]);
   const navigate = useNavigate();
 
+  // --- INI KUNCINYA: Ambil Token Warna dari Tema Sistem ---
+  const { token } = theme.useToken(); 
+
   // Ambil data Barang & Customer dari Backend
   useEffect(() => {
     const fetchData = async () => {
@@ -28,7 +32,6 @@ const InputSalesReturn = () => {
           axios.get('/api/contacts/')
         ]);
         setInventoryItems(itemsRes.data);
-        // Filter cuma ambil Customer
         setCustomers(contactsRes.data.filter(c => c.type === 'CUSTOMER'));
       } catch (err) {
         message.error('Gagal memuat data master.');
@@ -40,7 +43,6 @@ const InputSalesReturn = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-        // Format item sesuai permintaan Backend
         const formattedItems = values.items.map(item => ({
             item_id: item.item_id,
             quantity: item.quantity,
@@ -56,15 +58,13 @@ const InputSalesReturn = () => {
             items: formattedItems
         };
 
-        // Kirim ke Backend
         await axios.post('/api/sales/return/', payload);
         
         message.success('Retur berhasil dicatat! Stok telah dikembalikan.');
         form.resetFields();
-        navigate('/inventory'); // Pindah ke halaman stok biar liat hasilnya
+        navigate('/inventory'); 
     } catch (error) {
         console.error(error);
-        // Tampilkan pesan error dari backend (misal: Akun 4-2000 belum ada)
         const errorMsg = error.response?.data?.error || 'Gagal mencatat retur.';
         message.error(errorMsg);
     } finally {
@@ -74,11 +74,22 @@ const InputSalesReturn = () => {
 
   return (
     <Card 
-      title={<Title level={3} style={{color:'#cf1322', margin:0}}><RollbackOutlined /> Input Retur Penjualan</Title>} 
-      style={{ maxWidth: 900, margin: '20px auto', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+      // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+      title={
+        <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
+          <RollbackOutlined style={{ marginRight: 8 }} /> Input Retur Penjualan
+        </Title>
+      } 
+      style={{ 
+        maxWidth: 900, 
+        margin: '20px auto', 
+        borderRadius: 12, 
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        // Background card otomatis ngikut tema (Putih/Gelap)
+      }}
     >
       <Text type="secondary" style={{display:'block', marginBottom: 20}}>
-        Gunakan form ini jika pelanggan mengembalikan barang (rusak/batal). Stok akan bertambah kembali dan Piutang/Kas akan berkurang.
+        Gunakan form ini jika pelanggan mengembalikan barang. Stok bertambah, Piutang/Kas berkurang.
       </Text>
 
       <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ date: dayjs(), tipe_pengembalian: 'KREDIT', items: [{}] }}>
@@ -105,13 +116,26 @@ const InputSalesReturn = () => {
             </Select>
         </Form.Item>
 
-        <Divider orientation="left" style={{borderColor: '#cf1322'}}>Barang yang Diretur</Divider>
+        {/* Garis pemisah warna default */}
+        <Divider orientation="left">Barang yang Diretur</Divider>
 
         <Form.List name="items">
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
-                <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8, background:'#fafafa', padding:10, borderRadius:8, border:'1px solid #f0f0f0' }}>
+                <Row 
+                  key={key} 
+                  gutter={8} 
+                  align="middle" 
+                  style={{ 
+                    marginBottom: 8, 
+                    // --- INI YANG BIKIN BACKGROUND NYESUAIIN TEMA ---
+                    background: token.colorFillAlter, // Warna isian alternatif (abu muda / hitam pudar)
+                    border: `1px solid ${token.colorBorderSecondary}`, // Border tipis sesuai tema
+                    padding: 10, 
+                    borderRadius: 8 
+                  }}
+                >
                   <Col span={8}>
                     <Form.Item {...restField} name={[name, 'item_id']} label="Nama Barang" rules={[{ required: true, message: 'Pilih barang' }]}>
                       <Select placeholder="Pilih Barang" showSearch optionFilterProp="children">
@@ -121,7 +145,7 @@ const InputSalesReturn = () => {
                   </Col>
                   <Col span={4}>
                     <Form.Item {...restField} name={[name, 'quantity']} label="Qty" rules={[{ required: true }]}>
-                      <InputNumber placeholder="Jumlah" min={1} style={{ width: '100%' }} />
+                      <InputNumber placeholder="Jml" min={1} style={{ width: '100%' }} />
                     </Form.Item>
                   </Col>
                   <Col span={6}>
@@ -155,7 +179,8 @@ const InputSalesReturn = () => {
         <Divider />
 
         <Form.Item>
-            <Button type="primary" danger htmlType="submit" loading={loading} block size="large" icon={<RollbackOutlined />}>
+            {/* Tombol pakai warna tema juga */}
+            <Button type="primary" htmlType="submit" loading={loading} block size="large" icon={<RollbackOutlined />}>
                 Simpan Transaksi Retur
             </Button>
         </Form.Item>
