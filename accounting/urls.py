@@ -25,7 +25,7 @@ from .views import (
     SubsidiaryLedgerView,
     
     # "Tindakan" (AJE Otomatis)
-    RunDepreciationView
+    RunDepreciationView, CreateSalesReturnView
 )
 
 # --- INI BAGIAN PENTING ---
@@ -66,4 +66,5 @@ urlpatterns = router.urls + [
     # API INVENTORI (SIHIR)
     path('inventory/purchase/', PurchaseInventoryView.as_view(), name='inventory-purchase-stock'),
     path('inventory/sell/', CreateSalesInvoiceView.as_view(), name='inventory-sell-stock'),
+    path('sales/return/', CreateSalesReturnView.as_view(), name='sales-return'),
 ]

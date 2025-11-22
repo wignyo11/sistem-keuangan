@@ -16,6 +16,7 @@ from dateutil.relativedelta import relativedelta
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsOwner, IsAccountant, IsSales, IsPurchasing
 from django.shortcuts import render
+from .serializers import SalesReturnSerializer
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -636,6 +637,96 @@ class TrialBalanceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
+class CreateSalesReturnView(APIView):
+    permission_classes = [IsAuthenticated, IsOwner | IsAccountant | IsSales]
+    
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        serializer = SalesReturnSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        data = serializer.validated_data
+        tipe_pengembalian = data['tipe_pengembalian']
+        return_items = data['items']
+        
+        try:
+            # Ambil Akun Default (Pastikan akun 4-2000 dibuat di COA nanti)
+            akun_kas = Account.objects.get(number='1-1000')
+            akun_piutang = Account.objects.get(number='1-1100')
+            akun_retur_penjualan = Account.objects.get(number='4-2000') 
+            akun_ppn_keluaran = Account.objects.get(number='2-1200') 
+
+        except Account.DoesNotExist as e:
+            return Response(
+                {"error": f"Akun tidak ditemukan: {str(e)}. Pastikan Akun 4-2000 (Retur Penjualan) sudah dibuat."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tipe_pengembalian == 'TUNAI':
+            akun_kredit_pengembalian = akun_kas
+        else: 
+            akun_kredit_pengembalian = akun_piutang
+        
+        total_pengembalian_dana = Decimal('0.0')
+        total_nilai_retur = Decimal('0.0')
+        total_ppn_balik = Decimal('0.0')
+        
+        description = data.get('description') or "Retur Penjualan Barang"
+        
+        # 1. Jurnal Finansial
+        entry_financial = JournalEntry.objects.create(
+            date=data['date'], description=description, contact_id=data.get('contact_id')
+        )
+        
+        # 2. Jurnal Stok (Balikin HPP)
+        entry_inventory = JournalEntry.objects.create(
+            date=data['date'], description=f"Pengembalian Stok (HPP): {description}", contact_id=data.get('contact_id')
+        )
+        
+        for item_data in return_items:
+            try:
+                item = InventoryItem.objects.get(id=item_data['item_id'])
+            except InventoryItem.DoesNotExist:
+                continue
+
+            qty = Decimal(str(item_data['quantity']))
+            price = Decimal(str(item_data['unit_price']))
+            tax_rate = Decimal(str(item_data.get('tax_rate', 0)))
+
+            nilai_retur = qty * price
+            ppn = nilai_retur * (tax_rate / Decimal('100.0'))
+            
+            total_nilai_retur += nilai_retur
+            total_ppn_balik += ppn
+            
+            # Balikin Stok (Debit Persediaan, Kredit HPP)
+            cost_amount = qty * item.average_cost
+            JournalItem.objects.create(journal_entry=entry_inventory, account=item.asset_account, debit=cost_amount, credit=Decimal('0.0'))
+            JournalItem.objects.create(journal_entry=entry_inventory, account=item.hpp_account, debit=Decimal('0.0'), credit=cost_amount)
+            
+            InventoryLog.objects.create(
+                item=item, date=data['date'], transaction_type='RETUR_JUAL',
+                quantity=qty, total_cost=cost_amount, journal_entry=entry_inventory
+            )
+            item.recalculate_inventory()
+
+        # Selesaikan Jurnal Finansial
+        total_pengembalian_dana = total_nilai_retur + total_ppn_balik
+        
+        # Debit Retur Penjualan
+        JournalItem.objects.create(journal_entry=entry_financial, account=akun_retur_penjualan, debit=total_nilai_retur, credit=Decimal('0.0'))
+        
+        # Debit PPN Keluaran (Kurangi Utang Pajak)
+        if total_ppn_balik > 0:
+            JournalItem.objects.create(journal_entry=entry_financial, account=akun_ppn_keluaran, debit=total_ppn_balik, credit=Decimal('0.0'))
+            
+        # Kredit Kas/Piutang
+        JournalItem.objects.create(journal_entry=entry_financial, account=akun_kredit_pengembalian, debit=Decimal('0.0'), credit=total_pengembalian_dana)
+        
+        return Response({"status": "Retur Penjualan berhasil dicatat."}, status=status.HTTP_201_CREATED)
+    
 # accounting/views.py (UPDATE BAGIAN INI SAJA)
 
 class DashboardSummaryView(APIView):

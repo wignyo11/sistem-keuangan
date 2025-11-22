@@ -230,3 +230,9 @@ class MakePaymentSerializer(serializers.Serializer):
     account_credit_id = serializers.IntegerField() # <-- ID Akun Kas/Bank (tempat duit keluar)
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal('0.01'))
 
+class SalesReturnSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    contact_id = serializers.IntegerField()
+    items = serializers.ListField(child=serializers.DictField()) 
+    description = serializers.CharField(required=False, allow_blank=True)
+    tipe_pengembalian = serializers.ChoiceField(choices=['TUNAI', 'KREDIT'])

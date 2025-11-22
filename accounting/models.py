@@ -198,6 +198,7 @@ class InventoryLog(models.Model):
         ('BELI', 'Pembelian Stok'),
         ('JUAL', 'Penjualan (HPP)'),
         ('PENYESUAIAN', 'Penyesuaian Stok (Rusak/Hilang)'),
+        ('RETUR_JUAL', 'Retur Penjualan'),
     ]
 
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='inventory_logs')
