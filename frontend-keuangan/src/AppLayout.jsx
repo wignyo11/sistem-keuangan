@@ -23,7 +23,8 @@ import {
   HistoryOutlined,
   LogoutOutlined,
   SunOutlined,
-  MoonOutlined
+  MoonOutlined,
+  RollbackOutlined
 } from '@ant-design/icons';
 import { useContext } from 'react'; 
 import AuthContext from './context/AuthContext';
@@ -47,6 +48,11 @@ const menuItems = [
         key: '/input-penjualan',
         icon: <DollarCircleOutlined />, // Pake ikon yang sama
         label: <Link to="/input-penjualan">Input Penjualan</Link>,
+      },
+      {
+        key: '/sales/return',
+        icon: <RollbackOutlined />,
+        label: <Link to="/sales/return">Retur Penjualan</Link>,
       },
       {
         key: '/input-inventory',
@@ -197,6 +203,7 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
         // Cek "anak"-nya
         item.children = item.children.filter(child => {
             if (child.key === '/input-penjualan') return isSales || isAccountant;
+            if (child.key === '/sales/return') return isSales || isAccountant;
             if (child.key === '/input-inventory') return isPurchasing || isAccountant;
             if (child.key === '/input-beban') return isPurchasing || isAccountant;
             if (child.key === '/transaksi/terima-pembayaran') return isSales || isAccountant;

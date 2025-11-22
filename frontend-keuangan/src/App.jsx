@@ -27,6 +27,7 @@ import RunDepreciation from './pages/RunDepreciation'
 import SubsidiaryLedger from './pages/SubsidiaryLedger'
 import ReceivePayment from './pages/ReceivePayment'
 import MakePayment from './pages/MakePayment'
+import InputSalesReturn from './pages/InputSalesReturn';
 import './App.css' 
 
 function App() {
@@ -90,6 +91,7 @@ function App() {
                   {/* ... Semua Route Internal Lo (SAMA AJA, GAK BERUBAH) ... */}
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/input-penjualan" element={<InputPenjualan />} />
+                  <Route path="/sales/return" element={<InputSalesReturn />} />
                   <Route path="/input-beban" element={<InputBeban />} />
                   <Route path="/input-inventory" element={<InputInventory />} />
                   <Route path="/accounts" element={<ChartOfAccounts />} />
