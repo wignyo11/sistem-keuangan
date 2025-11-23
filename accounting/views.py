@@ -17,6 +17,8 @@ from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsOwner, IsAccountant, IsSales, IsPurchasing
 from django.shortcuts import render
 from .serializers import SalesReturnSerializer
+from django.views.decorators.cache import never_cache
+
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -1589,6 +1591,7 @@ class MakePaymentView(APIView):
         )
 
         return Response({"status": "Pembayaran kas berhasil dicatat"}, status=status.HTTP_201_CREATED)
-    
+
+@never_cache   
 def index(request):
     return render(request, 'index.html')
