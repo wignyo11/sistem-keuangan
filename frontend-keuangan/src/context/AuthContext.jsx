@@ -1,16 +1,14 @@
+// File: src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from "jwt-decode"; // <-- Import ini
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axiosInstance'; // Pake axios kita yg pinter
+import axiosInstance from '../utils/axiosInstance';
 
 const AuthContext = createContext();
 
 export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
-    
-    // 1. INISIALISASI STATE (JURUS ANTI AMNESIA)
-    // Pas website dibuka/refresh, langsung cek localStorage dulu!
     const [authTokens, setAuthTokens] = useState(() => {
         const storedTokens = localStorage.getItem('authTokens');
         return storedTokens ? JSON.parse(storedTokens) : null;
@@ -21,15 +19,13 @@ export const AuthProvider = ({ children }) => {
         return storedTokens ? jwtDecode(storedTokens) : null;
     });
 
-    const [loading, setLoading] = useState(false); // Loading buat login process
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // 2. FUNGSI LOGIN
     const loginUser = async (username, password) => {
         setLoading(true);
         try {
-            // Pake axios biasa dulu buat login pertama kali
-            // (Biar gak kena interceptor token yg belum ada)
+            // 1. Minta Token
             const response = await axiosInstance.post('/api/token/', {
                 username, password
             });
@@ -37,10 +33,16 @@ export const AuthProvider = ({ children }) => {
             const data = response.data;
 
             if (response.status === 200) {
+                // 2. Simpan Data
                 setAuthTokens(data);
                 setUser(jwtDecode(data.access));
                 localStorage.setItem('authTokens', JSON.stringify(data));
-                navigate('/'); // Lempar ke Dashboard
+
+                // --- TAMBAHAN PENTING: PAKSA AXIOS PAKE TOKEN SEKARANG JUGA ---
+                axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;
+                
+                // 3. Pindah Halaman
+                navigate('/');
             } else {
                 alert('Ada yang salah!');
             }
@@ -52,29 +54,30 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // 3. FUNGSI LOGOUT
     const logoutUser = () => {
         setAuthTokens(null);
         setUser(null);
         localStorage.removeItem('authTokens');
+        // Hapus header biar bersih
+        delete axiosInstance.defaults.headers.common['Authorization'];
         navigate('/login');
     };
 
-    // 4. CONTEXT DATA
+    // Cek token pas pertama load
+    useEffect(() => {
+        if (authTokens) {
+            setUser(jwtDecode(authTokens.access));
+            // Pasang header pas refresh halaman
+            axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + authTokens.access;
+        }
+    }, [authTokens]);
+
     const contextData = {
         user: user,
         authTokens: authTokens,
         loginUser: loginUser,
         logoutUser: logoutUser,
     };
-
-    // 5. CEK OTOMATIS SAAT LOAD
-    // (Opsional: Bisa ditambah logika buat verify token ke backend kalau mau super aman)
-    useEffect(() => {
-        if (authTokens) {
-            setUser(jwtDecode(authTokens.access));
-        }
-    }, [authTokens]);
 
     return (
         <AuthContext.Provider value={contextData}>
