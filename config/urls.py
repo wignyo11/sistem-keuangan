@@ -23,3 +23,6 @@ urlpatterns = [
     # Taruh ini PALING BAWAH. Jangan ada path lain di bawah baris ini.
     re_path(r'^.*$', index), 
 ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://equilib-system-atma.up.railway.app',
+]
