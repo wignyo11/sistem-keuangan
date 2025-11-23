@@ -1,101 +1,84 @@
-// File: src/context/AuthContext.jsx
-// (VERSI UPGRADE - Pake axiosInstance)
-
-import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import { createContext, useState, useEffect } from 'react';
+import { jwtDecode } from "jwt-decode"; // <-- Import ini
 import { useNavigate } from 'react-router-dom';
-import { Spin } from 'antd';
-import axiosInstance from '../utils/axiosInstance'; // <-- IMPORT "AXIOS PINTER" KITA
+import axiosInstance from '../utils/axiosInstance'; // Pake axios kita yg pinter
 
 const AuthContext = createContext();
+
 export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
-  const navigate = useNavigate();
+    
+    // 1. INISIALISASI STATE (JURUS ANTI AMNESIA)
+    // Pas website dibuka/refresh, langsung cek localStorage dulu!
+    const [authTokens, setAuthTokens] = useState(() => {
+        const storedTokens = localStorage.getItem('authTokens');
+        return storedTokens ? JSON.parse(storedTokens) : null;
+    });
 
-  const [authTokens, setAuthTokens] = useState(() => 
-    localStorage.getItem('authTokens')
-      ? JSON.parse(localStorage.getItem('authTokens'))
-      : null
-  );
+    const [user, setUser] = useState(() => {
+        const storedTokens = localStorage.getItem('authTokens');
+        return storedTokens ? jwtDecode(storedTokens) : null;
+    });
 
-  const [user, setUser] = useState(() => {
-    if (localStorage.getItem('authTokens')) {
-      const token = JSON.parse(localStorage.getItem('authTokens')).access;
-      const decodedToken = jwtDecode(token);
-      return { 
-        user_id: decodedToken.user_id, 
-        username: decodedToken.username,
-        groups: decodedToken.groups || []
-      };
-    }
-    return null;
-  });
+    const [loading, setLoading] = useState(false); // Loading buat login process
+    const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false); // Kita matiin 'loading' awal
+    // 2. FUNGSI LOGIN
+    const loginUser = async (username, password) => {
+        setLoading(true);
+        try {
+            // Pake axios biasa dulu buat login pertama kali
+            // (Biar gak kena interceptor token yg belum ada)
+            const response = await axiosInstance.post('/api/token/', {
+                username, password
+            });
 
-  // --- FUNGSI LOGIN (DI-UPGRADE) ---
-  const loginUser = async (username, password) => {
-    try {
-      // 1. Panggil API '/api/token/' PAKE "AXIOS PINTER"
-      const response = await axiosInstance.post('/api/token/', {
-        username: username,
-        password: password,
-      });
+            const data = response.data;
 
-      const data = response.data;
-      const decodedToken = jwtDecode(data.access);
+            if (response.status === 200) {
+                setAuthTokens(data);
+                setUser(jwtDecode(data.access));
+                localStorage.setItem('authTokens', JSON.stringify(data));
+                navigate('/'); // Lempar ke Dashboard
+            } else {
+                alert('Ada yang salah!');
+            }
+        } catch (error) {
+            console.error("Login Error:", error);
+            alert('Username atau Password salah!');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      setAuthTokens(data);
-      setUser({ 
-        user_id: decodedToken.user_id, 
-        username: decodedToken.username,
-        groups: decodedToken.groups || []
-      });
+    // 3. FUNGSI LOGOUT
+    const logoutUser = () => {
+        setAuthTokens(null);
+        setUser(null);
+        localStorage.removeItem('authTokens');
+        navigate('/login');
+    };
 
-      localStorage.setItem('authTokens', JSON.stringify(data));
+    // 4. CONTEXT DATA
+    const contextData = {
+        user: user,
+        authTokens: authTokens,
+        loginUser: loginUser,
+        logoutUser: logoutUser,
+    };
 
-      // "Ajarin" axiosInstance (lagi) buat request berikutnya
-      axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;
+    // 5. CEK OTOMATIS SAAT LOAD
+    // (Opsional: Bisa ditambah logika buat verify token ke backend kalau mau super aman)
+    useEffect(() => {
+        if (authTokens) {
+            setUser(jwtDecode(authTokens.access));
+        }
+    }, [authTokens]);
 
-      navigate('/');
-
-    } catch (error) {
-      console.error("Login Gagal:", error);
-      alert('Username atau password salah!');
-    }
-  };
-
-  // --- FUNGSI LOGOUT (DI-UPGRADE) ---
-  const logoutUser = () => {
-    setAuthTokens(null);
-    setUser(null);
-    localStorage.removeItem('authTokens');
-
-    // Hapus "kunci" dari "axios pinter"
-    delete axiosInstance.defaults.headers.common['Authorization'];
-
-    navigate('/login');
-  };
-
-  // Kita HAPUS 'useEffect' yang "ngajarin" axios,
-  // karena 'axiosInstance' udah pinter dari sananya.
-
-  const contextData = {
-    user: user,
-    authTokens: authTokens,
-    loginUser: loginUser,
-    logoutUser: logoutUser,
-  };
-
-  // Jangan nampilin apa-apa kalo 'loading'
-  if (loading) {
-      return <Spin tip="Memuat Sesi..." size="large" style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }} />;
-  }
-
-  return (
-    <AuthContext.Provider value={contextData}>
-      {children} 
-    </AuthContext.Provider>
-  );
+    return (
+        <AuthContext.Provider value={contextData}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
