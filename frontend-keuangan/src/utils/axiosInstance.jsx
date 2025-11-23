@@ -61,12 +61,14 @@ const refreshAuthLogic = async (failedRequest) => {
 // 4. "Pasang Pencegat"-nya ke 'axios pinter' kita
 applyAuthTokenInterceptor(axiosInstance, {
     requestTrigger: (config) => {
-        // Kita cuma pasang "kunci" kalo manggil API kita (bukan API luar)
-        return config.baseURL === baseURL && config.url !== '/api/token/';
+        // JANGAN cek baseURL lagi. Cukup cek URL tujuannya.
+        // Kalau URL-nya BUKAN login atau refresh, WAJIB pake token.
+        const isAuthEndpoint = config.url.includes('/token/');
+        return !isAuthEndpoint; 
     },
-    getAccessToken: () => getAuthTokens()?.access, // Ambil "kunci" utama
-    getRefreshToken: () => getAuthTokens()?.refresh, // Ambil "kunci cadangan"
-    onRefresh: refreshAuthLogic // Kalo expired, panggil fungsi "refresh"
+    getAccessToken: () => getAuthTokens()?.access,
+    getRefreshToken: () => getAuthTokens()?.refresh,
+    onRefresh: refreshAuthLogic
 });
 
 export default axiosInstance; // <-- Export "Axios Pinter"
