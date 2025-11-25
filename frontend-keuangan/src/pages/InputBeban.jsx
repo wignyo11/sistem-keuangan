@@ -46,7 +46,7 @@ const InputBeban = () => {
         ]);
 
         setBebanAccounts(
-          accountsRes.data.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_LAIN')
+          accountsRes.data.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_OPERASIONAL' || acc.type === 'BEBAN_LAIN')
         );
         setContacts(
           contactsRes.data.filter(c => c.type === 'VENDOR')

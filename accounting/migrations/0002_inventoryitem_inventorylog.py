@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('average_cost', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),
                 ('total_value', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),
                 ('asset_account', models.ForeignKey(limit_choices_to={'type': 'ASET'}, on_delete=django.db.models.deletion.PROTECT, to='accounting.account')),
-                ('hpp_account', models.ForeignKey(limit_choices_to={'type__in': ['BEBAN', 'BEBAN_LAIN']}, on_delete=django.db.models.deletion.PROTECT, related_name='hpp_items', to='accounting.account')),
+                ('hpp_account', models.ForeignKey(limit_choices_to={'type__in': ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']}, on_delete=django.db.models.deletion.PROTECT, related_name='hpp_items', to='accounting.account')),
             ],
         ),
         migrations.CreateModel(

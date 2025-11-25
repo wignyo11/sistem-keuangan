@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('number', models.CharField(help_text='Contoh: 1-1000', max_length=20, unique=True)),
-                ('type', models.CharField(choices=[('ASET', 'Aset'), ('LIABILITAS', 'Liabilitas'), ('EKUITAS', 'Ekuitas'), ('PENDAPATAN', 'Pendapatan'), ('BEBAN', 'Beban (HPP)'), ('BEBAN_LAIN', 'Beban Lainnya')], max_length=20)),
+                ('type', models.CharField(choices=[('ASET', 'Aset'), ('LIABILITAS', 'Liabilitas'), ('EKUITAS', 'Ekuitas'), ('PENDAPATAN', 'Pendapatan'), ('BEBAN', 'Beban (HPP)'), ('BEBAN_OPERASIONAL', 'Beban Operasional'), ('BEBAN_LAIN', 'Beban Lainnya')], max_length=20)),
                 ('normal_balance', models.CharField(choices=[('DEBIT', 'Debit'), ('KREDIT', 'Kredit')], max_length=10)),
             ],
             options={

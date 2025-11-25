@@ -178,7 +178,7 @@ class CreatePurchaseShortcutView(APIView):
             )
         
         # ... (Validasi akun beban, dll - biarkan saja)
-        if akun_beban.type not in ['BEBAN', 'BEBAN_LAIN']:
+        if akun_beban.type not in ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']:
              return Response(
                 {"error": "Akun yang dipilih bukan tipe akun Beban."},
                 status=status.HTTP_400_BAD_REQUEST
@@ -270,7 +270,7 @@ class IncomeStatementView(APIView):
         #    Kita cari semua item yang akunnya bertipe 'BEBAN' ATAU 'BEBAN_LAIN'
         #    Total Beban = total Debit - total Kredit
         beban_data = items_in_range.filter(
-            Q(account__type='BEBAN') | Q(account__type='BEBAN_LAIN')
+            Q(account__type='BEBAN') | Q(account__type='BEBAN_OPERASIONAL') | Q(account__type='BEBAN_LAIN')
         ).aggregate(
             total_kredit=Sum('credit', default=Decimal('0.0')),
             total_debit=Sum('debit', default=Decimal('0.0'))
@@ -290,7 +290,7 @@ class IncomeStatementView(APIView):
             },
             "beban": {
                 "total": total_beban,
-                "detail_akun": self.get_account_details(items_in_range, ['BEBAN', 'BEBAN_LAIN'])
+                "detail_akun": self.get_account_details(items_in_range, ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN'])
             },
             "laba_bersih": laba_bersih
         }
@@ -389,7 +389,7 @@ class BalanceSheetView(APIView):
 
             # Total Beban (Retained)
             beban_retained_data = items_up_to_date.filter(
-                Q(account__type='BEBAN') | Q(account__type='BEBAN_LAIN')
+                Q(account__type='BEBAN') | Q(account__type='BEBAN_OPERASIONAL') | Q(account__type='BEBAN_LAIN')
             ).aggregate(
                 total_kredit=Sum('credit', default=Decimal('0.0')),
                 total_debit=Sum('debit', default=Decimal('0.0'))
@@ -786,7 +786,7 @@ class DashboardSummaryView(APIView):
             
             # Beban (INI BAGIAN YANG TADI EROR)
             # PERBAIKAN 2: Ditambah 'account__' di depan 'type__in'
-            e = items_m.filter(account__type__in=['BEBAN', 'BEBAN_LAIN']).aggregate(d=Sum('debit'), c=Sum('credit'))
+            e = items_m.filter(account__type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']).aggregate(d=Sum('debit'), c=Sum('credit'))
             val_exp = (e['d'] or 0) - (e['c'] or 0)
             
             trend_data.append({
@@ -813,7 +813,7 @@ class DashboardSummaryView(APIView):
         # --- 4. PIE CHART ---
         expense_comp = []
         # PERBAIKAN 3: Pake account__type__in biar aman
-        beban_accs = Account.objects.filter(type__in=['BEBAN', 'BEBAN_LAIN'])
+        beban_accs = Account.objects.filter(type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN'])
         for acc in beban_accs:
             bal = self.get_single_balance(items_this_month, acc)
             if bal > 0: expense_comp.append({"name": acc.name, "value": bal})
@@ -882,7 +882,7 @@ class CashFlowStatementView(APIView):
             )
             total_pendapatan = pendapatan_data['kredit'] - pendapatan_data['debit']
             
-            beban_data = items_in_range.filter(Q(account__type='BEBAN') | Q(account__type='BEBAN_LAIN')).aggregate(
+            beban_data = items_in_range.filter(Q(account__type='BEBAN') | Q(account__type='BEBAN_OPERASIONAL') | Q(account__type='BEBAN_LAIN')).aggregate(
                 kredit=Sum('credit', default=Decimal('0.0')), debit=Sum('debit', default=Decimal('0.0'))
             )
             total_beban = beban_data['debit'] - beban_data['kredit']

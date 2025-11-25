@@ -33,6 +33,7 @@ const columns = [
       { text: 'Ekuitas', value: 'EKUITAS' },
       { text: 'Pendapatan', value: 'PENDAPATAN' },
       { text: 'Beban (HPP)', value: 'BEBAN' },
+      { text: 'Beban Operasional', value: 'BEBAN_OPERASIONAL' },
       { text: 'Beban Lainnya', value: 'BEBAN_LAIN' },
     ],
     onFilter: (value, record) => record.type.indexOf(value) === 0,
@@ -149,6 +150,7 @@ function ChartOfAccounts() {
               <Select.Option value="EKUITAS">Ekuitas</Select.Option>
               <Select.Option value="PENDAPATAN">Pendapatan</Select.Option>
               <Select.Option value="BEBAN">Beban (HPP)</Select.Option>
+              <Select.Option value="BEBAN_OPERASIONAL">Beban Operasional</Select.Option>
               <Select.Option value="BEBAN_LAIN">Beban Lainnya</Select.Option>
             </Select>
           </Form.Item>

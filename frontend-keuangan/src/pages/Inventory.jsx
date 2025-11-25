@@ -89,7 +89,7 @@ const Inventory = () => {
       
       // Filter akun untuk dropdown
       setAssetAccounts(accountsRes.data.filter(acc => acc.type === 'ASET'));
-      setHppAccounts(accountsRes.data.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_LAIN'));
+      setHppAccounts(accountsRes.data.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_OPERASIONAL' || acc.type === 'BEBAN_LAIN'));
       
       setError(null);
     } catch (err) {

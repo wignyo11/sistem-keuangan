@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('last_depreciation_date', models.DateField(blank=True, null=True)),
                 ('accumulated_depreciation_account', models.ForeignKey(limit_choices_to={'normal_balance': 'KREDIT', 'type': 'ASET'}, on_delete=django.db.models.deletion.PROTECT, related_name='fixed_assets_akum', to='accounting.account')),
                 ('asset_account', models.ForeignKey(limit_choices_to={'normal_balance': 'DEBIT', 'type': 'ASET'}, on_delete=django.db.models.deletion.PROTECT, related_name='fixed_assets', to='accounting.account')),
-                ('depreciation_expense_account', models.ForeignKey(limit_choices_to={'type__in': ['BEBAN', 'BEBAN_LAIN']}, on_delete=django.db.models.deletion.PROTECT, related_name='fixed_assets_beban', to='accounting.account')),
+                ('depreciation_expense_account', models.ForeignKey(limit_choices_to={'type__in': ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']}, on_delete=django.db.models.deletion.PROTECT, related_name='fixed_assets_beban', to='accounting.account')),
             ],
         ),
     ]

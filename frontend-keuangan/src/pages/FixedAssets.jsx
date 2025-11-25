@@ -122,7 +122,7 @@ const FixedAssets = () => {
   // Filter Akun untuk Dropdown
   const assetAccs = allAccounts.filter(acc => acc.type === 'ASET' && acc.normal_balance === 'DEBIT');
   const accumAccs = allAccounts.filter(acc => acc.type === 'ASET' && acc.normal_balance === 'KREDIT');
-  const expenseAccs = allAccounts.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_LAIN');
+  const expenseAccs = allAccounts.filter(acc => acc.type === 'BEBAN' || acc.type === 'BEBAN_OPERASIONAL' || acc.type === 'BEBAN_LAIN');
 
 
   if (loading && assets.length === 0) {

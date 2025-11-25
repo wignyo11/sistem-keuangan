@@ -12,6 +12,7 @@ class Account(models.Model):
         EKUITAS = 'EKUITAS', 'Ekuitas'
         PENDAPATAN = 'PENDAPATAN', 'Pendapatan'
         BEBAN = 'BEBAN', 'Beban (HPP)'
+        BEBAN_OPERASIONAL = 'BEBAN_OPERASIONAL', 'Beban Operasional'
         BEBAN_LAIN = 'BEBAN_LAIN', 'Beban Lainnya'
 
     class NormalBalance(models.TextChoices):
@@ -74,7 +75,7 @@ class FixedAsset(models.Model):
         Account, 
         on_delete=models.PROTECT,
         related_name='fixed_assets_beban',
-        limit_choices_to={'type__in': ['BEBAN', 'BEBAN_LAIN']}
+        limit_choices_to={'type__in': ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']}
     )
 
     # Info Kalkulasi
@@ -148,7 +149,7 @@ class InventoryItem(models.Model):
     hpp_account = models.ForeignKey(
         Account, 
         on_delete=models.PROTECT,
-        limit_choices_to={'type__in': ['BEBAN', 'BEBAN_LAIN']},
+        limit_choices_to={'type__in': ['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']},
         related_name='hpp_items'
     )
 
