@@ -220,7 +220,7 @@ const SubsidiaryLedger = () => {
           <Text strong>Akun Kontrol: {reportData.akun_kontrol}</Text><br/>
           <Text>Periode: {reportData.periode}</Text>
           
-          <Row justify="space-between" style={{ background: '#ffffffff', padding: '8px 12px', marginTop: '16px' }}>
+          <Row justify="space-between" style={{ padding: '8px 12px', marginTop: '16px' }}>
             <Col><Text strong>Saldo Awal (per {dateRange[0].format('DD MMM YYYY')})</Text></Col>
             <Col><Text strong>{formatRupiah(reportData.saldo_awal)}</Text></Col>
           </Row>
@@ -235,12 +235,12 @@ const SubsidiaryLedger = () => {
             style={{ marginTop: '8px' }}
           />
           
-          <Row justify="space-between" style={{ background: '#f0f2f5', padding: '12px', marginTop: '8px' }}>
+          <Row justify="space-between" style={{ padding: '12px', marginTop: '8px' }}>
             <Col span={12}><Text strong>Total Mutasi Periode Ini:</Text></Col>
             <Col span={6} style={{ textAlign: 'right' }}><Text strong>{formatRupiah(reportData.total_debit_mutasi)}</Text></Col>
             <Col span={6} style={{ textAlign: 'right' }}><Text strong>{formatRupiah(reportData.total_kredit_mutasi)}</Text></Col>
           </Row>
-          <Row justify="space-between" style={{ background: '#fafafa', padding: '12px' }}>
+          <Row justify="space-between" style={{ padding: '12px' }}>
             <Col><Title level={5}>Saldo Akhir (per {dateRange[1].format('DD MMM YYYY')})</Title></Col>
             <Col><Title level={5}>{formatRupiah(reportData.saldo_akhir)}</Title></Col>
           </Row>
