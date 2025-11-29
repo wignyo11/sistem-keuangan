@@ -6,18 +6,21 @@ from django.db import transaction
 
 class JournalItemSerializer(serializers.ModelSerializer):
     account_name = serializers.CharField(source='account.name', read_only=True)
+    account_name = serializers.ReadOnlyField(source='account.name')
+    account_number = serializers.ReadOnlyField(source='account.number')
 
     class Meta:
         model = JournalItem
-        fields = ['id', 'account', 'account_name', 'debit', 'credit']
+        fields = ['id', 'account', 'account_name', 'account_number', 'debit', 'credit']
         read_only_fields = ['account_name']
 
 class JournalEntrySerializer(serializers.ModelSerializer):
     items = JournalItemSerializer(many=True)
+    contact_name = serializers.ReadOnlyField(source='contact.name')
 
     class Meta:
         model = JournalEntry
-        fields = ['id', 'date', 'description', 'created_at', 'items']
+        fields = ['id', 'date', 'description', 'contact', 'contact_name', 'created_at', 'items']
 
     def validate(self, attrs):
         items_data = attrs.get('items', [])
@@ -107,6 +110,7 @@ class InventoryItemSerializer(serializers.ModelSerializer):
     # Kita tambahin nama akun biar gampang dibaca di frontend
     asset_account_name = serializers.CharField(source='asset_account.name', read_only=True)
     hpp_account_name = serializers.CharField(source='hpp_account.name', read_only=True)
+    
 
     class Meta:
         model = InventoryItem
