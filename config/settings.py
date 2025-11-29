@@ -152,3 +152,19 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
+
+# 1. Kasih tau Django kalau dia hidup di balik Proxy HTTPS Railway
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# 2. Paksa SSL (HTTPS)
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# 3. Percaya sama Domain Railway (Pastikan link-nya BENAR persis punya lo)
+CSRF_TRUSTED_ORIGINS = [
+    'https://equilib-system-atma.up.railway.app', 
+]
+
+# 4. (Opsional) Izinkan CORS Headers biar gak rewel
+CORS_ALLOW_CREDENTIALS = True
