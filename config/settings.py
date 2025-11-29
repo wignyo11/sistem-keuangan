@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'config.middleware.DisableCSRFOnAPI',
     'django.middleware.security.SecurityMiddleware',
     # WAJIB: WhiteNoise harus di sini buat nampilin React
     'whitenoise.middleware.WhiteNoiseMiddleware', 
