@@ -16,9 +16,19 @@ class JournalItemSerializer(serializers.ModelSerializer):
 
 class JournalEntrySerializer(serializers.ModelSerializer):
     items = JournalItemSerializer(many=True)
-    contact_name = serializers.ReadOnlyField(source='contact.name')
-    contact_phone = serializers.ReadOnlyField(source='contact.phone')
+    contact_name = serializers.SerializerMethodField()
+    contact_phone = serializers.SerializerMethodField()
 
+    def get_contact_name(self, obj):
+        if obj.contact:
+            return obj.contact.name
+        return "-" # Kalau gak ada kontak (misal jurnal penyusutan), balikin strip
+
+    def get_contact_phone(self, obj):
+        if obj.contact:
+            return obj.contact.phone
+        return ""
+    
     class Meta:
         model = JournalEntry
         fields = ['id', 'date', 'description', 'contact', 'contact_name', 'contact phone', 'created_at', 'items']
