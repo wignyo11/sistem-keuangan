@@ -2,44 +2,38 @@
 import React from 'react';
 import { Typography, Row, Col, Table, Divider } from 'antd';
 import dayjs from 'dayjs';
-import 'dayjs/locale/id'; // Biar tanggalnya Bahasa Indonesia
+import 'dayjs/locale/id';
 
 dayjs.locale('id');
 const { Title, Text } = Typography;
 
-// Helper Rupiah yang rapi
 const formatRupiah = (value) => 
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
-  // 1. Safety Check
-  if (!data || !data.journal) return null;
+// HAPUS forwardRef, jadiin fungsi biasa
+export const ProfessionalInvoiceTemplate = ({ data }) => {
+  // 1. Safety Check: Kalau data kosong, return div kosong (JANGAN return null biar ref induk gak error)
+  if (!data || !data.journal) {
+      return <div style={{ padding: 20 }}>Data belum siap dicetak...</div>;
+  }
+
   const { journal, items } = data;
 
-  // 2. Filter & Transform Data
-  // Kita cuma mau nampilin item yang SISI KREDIT (Pendapatan/Penjualan)
-  // karena ini Invoice buat customer.
   const salesItems = items.filter(item => Number(item.credit) > 0);
   
   const tableData = salesItems.map((item, idx) => ({
     key: idx,
-    description: item.account_name, // Nama Akun jadi deskripsi barang
-    // KARENA KITA BELUM PUNYA DATA QTY & HARGA SATUAN DI BACKEND,
-    // KITA AKALI DULU BIAR TAMPILANNYA PRO:
+    description: item.account_name,
     quantity: 1, 
     unitPrice: item.credit,
     total: item.credit
   }));
 
-  // Hitung Total
   const subTotal = salesItems.reduce((sum, item) => sum + Number(item.credit), 0);
-  const tax = 0; // Hardcode 0 dulu, nanti bisa diupdate kalo Pak Joko PKP
+  const tax = 0; 
   const grandTotal = subTotal + tax;
-
-  // Tanggal Jatuh Tempo (Misal H+7)
   const dueDate = dayjs(journal.date).add(7, 'day');
 
-  // ================= STYLING VARIABLES =================
   const styles = {
     page: {
         padding: '40px', background: 'white', fontFamily: 'Helvetica, Arial, sans-serif', color: '#333', fontSize: '14px'
@@ -76,7 +70,6 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
     }
   };
 
-  // Kolom Tabel Ant Design
   const columns = [
     { 
       title: 'DESKRIPSI', 
@@ -84,15 +77,12 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
       key: 'description',
       onHeaderCell: () => ({ style: styles.tableHeader })
     },
-    // Kolom Qty & Unit Price kita sembunyikan dulu kalau mau jujur,
-    // Atau tampilkan hardcode '1' biar kelihatan pro kayak di gambar referensi.
-    // SAYA PILIH TAMPILKAN BIAR MIRIP REFERENSI:
     { 
       title: 'KUANTITAS', 
       dataIndex: 'quantity', 
       key: 'quantity', align: 'center',
       onHeaderCell: () => ({ style: styles.tableHeader }),
-      render: () => '1 (Paket)' // Hardcode biar terlihat pro
+      render: () => '1 (Paket)' 
     },
     { 
       title: 'HARGA SATUAN', 
@@ -111,12 +101,11 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
   ];
 
   return (
-    <div ref={ref} style={styles.page}>
-      {/* --- HEADER --- */}
+    // Hapus ref={ref} di sini karena udah dipegang div pembungkus
+    <div style={styles.page}>
+      {/* HEADER */}
       <Row justify="space-between" align="top" style={{ marginBottom: 40 }}>
         <Col span={12}>
-            {/* Ganti URL ini dengan logo Selada Pak Joko nanti */}
-            <img src="https://cdn-icons-png.flaticon.com/512/7630/7630242.png" alt="Logo" style={{ width: 60, marginBottom: 15 }} />
             <div style={styles.companyName}>EQUILIB FARM</div>
             <Text>Jl. Agrikultur Modern No. 10, Jawa Tengah<br/>Telp: (021) 555-0199 | Email: sales@equilib.com</Text>
         </Col>
@@ -141,7 +130,7 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
         </Col>
       </Row>
 
-      {/* --- CUSTOMER INFO --- */}
+      {/* CUSTOMER */}
       <Row style={{ marginBottom: 30 }} gutter={40}>
           <Col span={12}>
             <div style={styles.headerGray}>
@@ -149,14 +138,12 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
             </div>
             <div style={{ padding: '15px 20px' }}>
                 <Title level={4} style={{ margin: 0, color: '#2c3e50' }}>{journal.contact_name || 'Pelanggan Tunai'}</Title>
-                {/* Nanti backend perlu kirim alamat kontak juga */}
                 <Text type="secondary">Alamat belum tersedia di database.</Text>
             </div>
           </Col>
-          {/* Bisa ditambah Ship To kalo perlu */}
       </Row>
 
-      {/* --- TABEL ITEM --- */}
+      {/* TABEL */}
       <Table 
         dataSource={tableData} 
         columns={columns} 
@@ -167,9 +154,8 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
         style={{ marginBottom: 30 }}
       />
 
-      {/* --- TOTALS & PAYMENT INFO --- */}
+      {/* TOTALS */}
       <Row justify="space-between" gutter={40}>
-        {/* Kiri: Info Pembayaran */}
         <Col span={14}>
             <div style={styles.bankBox}>
                 <Title level={5} style={{ margin: '0 0 15px 0', color: '#2c3e50' }}>Informasi Pembayaran:</Title>
@@ -185,7 +171,6 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
             </div>
         </Col>
 
-        {/* Kanan: Total */}
         <Col span={10}>
             <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '8px' }}>
                 <Row gutter={[0, 12]}>
@@ -208,4 +193,4 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
       </Row>
     </div>
   );
-});
+};
