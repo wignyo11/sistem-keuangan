@@ -105,7 +105,7 @@ const InputBeban = () => {
               // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
               title={
                 <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
-                  <ShoppingCartOutlined style={{ marginRight: 8 }} /> Input Beban (Pintasan)
+                Input Beban (Pintasan)
                 </Title>
               } 
               style={{ 
@@ -115,7 +115,7 @@ const InputBeban = () => {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 // Background card otomatis ngikut tema (Putih/Gelap)
               }}
-      >
+    >
 
       <p>Gunakan form ini untuk mencatat beban non-stok (misal: Listrik, Air, Gaji). Pilih 'Vendor' ATAU isi 'Keterangan' manual.</p>
       
