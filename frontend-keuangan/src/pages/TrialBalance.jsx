@@ -156,7 +156,7 @@ const TrialBalance = () => {
             style={{ marginTop: '8px' }}
             
             summary={() => (
-          <Table.Summary.Row style={{ background: '#fafafa', fontWeight: 'bold' }}>
+          <Table.Summary.Row style={{ fontWeight: 'bold' }}>
             <Table.Summary.Cell index={0} colSpan={2} style={{ textAlign: 'right' }}>
               <Title level={5}>GRAND TOTAL</Title>
             </Table.Summary.Cell>
