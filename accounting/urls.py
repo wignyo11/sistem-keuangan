@@ -67,4 +67,5 @@ urlpatterns = router.urls + [
     path('inventory/purchase/', PurchaseInventoryView.as_view(), name='inventory-purchase-stock'),
     path('inventory/sell/', CreateSalesInvoiceView.as_view(), name='inventory-sell-stock'),
     path('sales/return/', CreateSalesReturnView.as_view(), name='sales-return'),
+    path('sales/invoice/', CreateSalesInvoiceView.as_view(), name='sales-invoice-create'),
 ]

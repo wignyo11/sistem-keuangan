@@ -1464,7 +1464,7 @@ class CreateSalesInvoiceView(APIView):
         return Response(
             {
                 "status": "Penjualan berhasil dicatat.",
-                "id": entry_penjualan.id  # <--- INI PASTI BENAR SEKARANG
+                "id": entry_penjualan.id # <--- INI PASTI BENAR SEKARANG
             },
             status=status.HTTP_201_CREATED
         )
