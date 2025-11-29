@@ -24,7 +24,8 @@ import {
   LogoutOutlined,
   SunOutlined,
   MoonOutlined,
-  RollbackOutlined
+  RollbackOutlined,
+  PrinterOutlined
 } from '@ant-design/icons';
 import { useContext } from 'react'; 
 import AuthContext from './context/AuthContext';
@@ -84,6 +85,11 @@ const menuItems = [
         key: '/journal',
         icon: <BookOutlined />,
         label: <Link to="/journal">Jurnal Umum (Manual)</Link>,
+      },
+      {
+        key: '/print-invoice',
+        icon: <PrinterOutlined />,
+        label: <Link to="/print-invoice">Cetak Bukti Transaksi</Link>,
       },
     ],
   },

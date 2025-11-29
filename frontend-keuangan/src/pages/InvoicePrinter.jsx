@@ -1,79 +1,109 @@
 // File: src/pages/InvoicePrinter.jsx
-import React, { useRef, useState, useEffect } from 'react';
-import { Button, Input, Card, message, Spin } from 'antd';
-import { PrinterOutlined, SearchOutlined } from '@ant-design/icons';
+import React, { useRef, useState } from 'react';
+import { Button, Input, Card, message, Spin, Empty, theme } from 'antd';
+import { PrinterOutlined, SearchOutlined, FileSearchOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import axios from '../utils/axiosInstance';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
 
 const InvoicePrinter = () => {
+  const { token } = theme.useToken();
   const [journalId, setJournalId] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   
+  // Ref untuk komponen kertas
   const componentRef = useRef();
 
+  // Hook Print
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `Invoice-${journalId}`,
+    documentTitle: `Bukti_Transaksi_${journalId}`,
   });
 
   const fetchJournal = async () => {
-    if (!journalId) return;
+    if (!journalId) {
+        message.warning("Masukkan ID Jurnal dulu!");
+        return;
+    }
     setLoading(true);
+    setData(null); // Reset data lama
+
     try {
-      // Kita panggil detail jurnal
+      // Ambil data detail jurnal dari API
       const res = await axios.get(`/api/journal-entries/${journalId}/`);
       
-      // Kita butuh nama akun di items, backend defaultnya cuma ngasih ID akun.
-      // Untuk simplifikasi, kita anggap backend udah ngasih atau kita map manual nanti.
-      // Disini kita pass data mentah dulu.
-      
-      // PERLU PENYESUAIAN BACKEND DIKIT BIAR NAMA AKUN MUNCUL DI ITEM
-      // Tapi sementara kita pakai data yang ada.
+      // Susun data untuk dikirim ke template
       setData({
-        journal: {
-            id: res.data.id,
-            date: res.data.date,
-            contact_name: res.data.contact ? res.data.contact_name : '-' // Perlu serializer update dikit
-        },
-        items: res.data.items // Perlu serializer update biar ada 'account_name'
+        journal: res.data,
+        items: res.data.items 
       });
+      message.success("Data ditemukan!");
     } catch (err) {
-      message.error("ID Jurnal tidak ditemukan!");
-      setData(null);
+      console.error(err);
+      message.error("ID Transaksi tidak ditemukan.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '20px auto' }}>
-      <Card title="Cetak Bukti Transaksi">
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+    <div style={{ maxWidth: 900, margin: '20px auto' }}>
+      {/* 1. CARD PENCARIAN */}
+      <Card 
+        title="Cetak Faktur / Bukti Transaksi" 
+        style={{ background: token.colorBgContainer, marginBottom: 20 }}
+      >
+        <div style={{ display: 'flex', gap: 10 }}>
             <Input 
-                placeholder="Masukkan ID Jurnal / Transaksi" 
+                prefix={<FileSearchOutlined />}
+                placeholder="Masukkan Nomor ID Transaksi (Contoh: 5)" 
                 value={journalId} 
                 onChange={e => setJournalId(e.target.value)} 
-                style={{ width: 200 }}
+                onPressEnter={fetchJournal}
+                style={{ width: 300 }}
             />
             <Button type="primary" icon={<SearchOutlined />} onClick={fetchJournal} loading={loading}>
                 Cari Data
             </Button>
+            
+            {/* Tombol Print cuma muncul kalau data ada */}
             {data && (
-                <Button type="primary" danger icon={<PrinterOutlined />} onClick={handlePrint}>
+                <Button 
+                    type="primary" 
+                    danger 
+                    icon={<PrinterOutlined />} 
+                    onClick={handlePrint}
+                    style={{ marginLeft: 'auto' }}
+                >
                     Cetak PDF / Print
                 </Button>
             )}
         </div>
-
-        {/* Area Preview (Disembunyikan di layar, muncul pas print) */}
-        <div style={{ border: '1px dashed #ccc', padding: 10, background: '#f0f0f0', overflow: 'auto' }}>
-            {data ? (
-                <InvoiceTemplate ref={componentRef} data={data} />
-            ) : <div style={{textAlign: 'center', padding: 20}}>Silakan cari ID transaksi dulu</div>}
-        </div>
       </Card>
+
+      {/* 2. AREA PREVIEW (KERTAS) */}
+      <div style={{ 
+          border: '1px dashed #ccc', 
+          padding: 20, 
+          background: '#525659', // Warna abu gelap ala PDF Viewer
+          borderRadius: 8,
+          minHeight: 500,
+          display: 'flex',
+          justifyContent: 'center',
+          overflow: 'auto'
+      }}>
+          {data ? (
+              // Panggil Template di sini
+              <div style={{ boxShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
+                <InvoiceTemplate ref={componentRef} data={data} />
+              </div>
+          ) : (
+              <div style={{ color: 'white', marginTop: 100, textAlign: 'center' }}>
+                  <Empty description={<span style={{color:'white'}}>Data belum dimuat</span>} />
+              </div>
+          )}
+      </div>
     </div>
   );
 };
