@@ -13,7 +13,7 @@ import {
   Col,
   Space
 } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, DollarCircleOutlined } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';

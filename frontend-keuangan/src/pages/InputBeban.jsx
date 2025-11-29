@@ -15,6 +15,7 @@ import {
   Row,
   Col
 } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -105,7 +106,7 @@ const InputBeban = () => {
               // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
               title={
                 <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
-                Input Beban (Pintasan)
+                <ShoppingCartOutlined style={{ marginRight: 8 }} />Input Beban (Pintasan)
                 </Title>
               } 
               style={{ 
