@@ -18,6 +18,8 @@ from users.permissions import IsOwner, IsAccountant, IsSales, IsPurchasing
 from django.shortcuts import render
 from .serializers import SalesReturnSerializer
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt 
+from django.utils.decorators import method_decorator
 
 
 
@@ -639,7 +641,7 @@ class TrialBalanceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class CreateSalesReturnView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant | IsSales]
     
@@ -1348,7 +1350,8 @@ class PurchaseInventoryView(APIView):
             {"status": "Pembelian barang (termasuk PPN) berhasil dicatat"},
             status=status.HTTP_201_CREATED
         )
-    
+
+@method_decorator(csrf_exempt, name='dispatch')    
 class CreateSalesInvoiceView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant | IsSales]
     """
