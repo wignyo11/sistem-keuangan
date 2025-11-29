@@ -28,7 +28,7 @@ import SubsidiaryLedger from './pages/SubsidiaryLedger'
 import ReceivePayment from './pages/ReceivePayment'
 import MakePayment from './pages/MakePayment'
 import InputSalesReturn from './pages/InputSalesReturn';
-import InvoicePrinter from './pages/InvoicePrinter';
+import SalesHistory from './pages/SalesHistory';
 import './App.css' 
 
 function App() {
@@ -109,7 +109,7 @@ function App() {
                   <Route path="/laporan/buku-pembantu" element={<SubsidiaryLedger />} />
                   <Route path="/transaksi/terima-pembayaran" element={<ReceivePayment />} />
                   <Route path="/transaksi/bayar-utang" element={<MakePayment />} />
-                  <Route path="/print-invoice" element={<InvoicePrinter />} />
+                  <Route path="/sales/history" element={<SalesHistory />} />
                   
                   <Route path="*" element={<Navigate to="/" />} /> 
                 </Routes>

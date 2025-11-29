@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 import JournalEntryModal from './JournalEntryModal' // Import modal
 import { PlusOutlined } from '@ant-design/icons' // Import ikon
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // --- Kolom untuk TABEL DETAIL (di dalam) ---
 const expandedRowColumns = [
@@ -71,8 +71,8 @@ function JournalEntries() {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 70, 
-      sorter: (a, b) => a.id - b.id, 
+      width: 80,
+      sorter: (a, b) => a.id - b.id,
       render: (text) => <Text strong>#{text}</Text> 
     },
     {

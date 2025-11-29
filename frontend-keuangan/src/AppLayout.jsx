@@ -25,7 +25,8 @@ import {
   SunOutlined,
   MoonOutlined,
   RollbackOutlined,
-  PrinterOutlined
+  PrinterOutlined,
+  UndoOutlined
 } from '@ant-design/icons';
 import { useContext } from 'react'; 
 import AuthContext from './context/AuthContext';
@@ -87,9 +88,9 @@ const menuItems = [
         label: <Link to="/journal">Jurnal Umum (Manual)</Link>,
       },
       {
-        key: '/print-invoice',
-        icon: <PrinterOutlined />,
-        label: <Link to="/print-invoice">Cetak Bukti Transaksi</Link>,
+        key: '/sales/history',
+        icon: <UndoOutlined />, // Import icon ini dulu
+        label: <Link to="/sales/history">Riwayat Penjualan</Link>,
       },
     ],
   },
@@ -209,6 +210,7 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
         // Cek "anak"-nya
         item.children = item.children.filter(child => {
             if (child.key === '/input-penjualan') return isSales || isAccountant;
+            if (child.key === '/sales/history') return isSales || isAccountant;
             if (child.key === '/sales/return') return isSales || isAccountant;
             if (child.key === '/input-inventory') return isPurchasing || isAccountant;
             if (child.key === '/input-beban') return isPurchasing || isAccountant;

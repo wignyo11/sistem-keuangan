@@ -103,6 +103,7 @@ class FixedAsset(models.Model):
         return depreciable_cost / self.useful_life_months
 
 class JournalEntry(models.Model):
+    id = models.BigAutoField(primary_key=True)
     date = models.DateField()
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
