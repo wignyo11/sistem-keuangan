@@ -4,7 +4,7 @@ import { Button, Input, Card, message, Spin, Empty, theme } from 'antd';
 import { PrinterOutlined, SearchOutlined, FileSearchOutlined } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import axios from '../utils/axiosInstance';
-import { InvoiceTemplate } from '../components/InvoiceTemplate';
+import { ProfessionalInvoiceTemplate } from '../components/ProfessionalInvoiceTemplate';
 
 const InvoicePrinter = () => {
   const { token } = theme.useToken();
@@ -86,7 +86,6 @@ const InvoicePrinter = () => {
       <div style={{ 
           border: '1px dashed #ccc', 
           padding: 20, 
-          background: '#525659', // Warna abu gelap ala PDF Viewer
           borderRadius: 8,
           minHeight: 500,
           display: 'flex',
@@ -96,7 +95,7 @@ const InvoicePrinter = () => {
           {data ? (
               // Panggil Template di sini
               <div style={{ boxShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
-                <InvoiceTemplate ref={componentRef} data={data} />
+                <ProfessionalInvoiceTemplate ref={componentRef} data={data} />
               </div>
           ) : (
               <div style={{ color: 'white', marginTop: 100, textAlign: 'center' }}>

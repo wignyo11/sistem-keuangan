@@ -68,6 +68,14 @@ function JournalEntries() {
   // --- Kolom untuk TABEL UTAMA (Induk) ---
   const mainColumns = [
     {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 70, 
+      sorter: (a, b) => a.id - b.id, 
+      render: (text) => <Text strong>#{text}</Text> 
+    },
+    {
       title: 'Tanggal',
       dataIndex: 'date',
       key: 'date',
