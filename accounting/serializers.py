@@ -17,10 +17,11 @@ class JournalItemSerializer(serializers.ModelSerializer):
 class JournalEntrySerializer(serializers.ModelSerializer):
     items = JournalItemSerializer(many=True)
     contact_name = serializers.ReadOnlyField(source='contact.name')
+    contact_phone = serializers.ReadOnlyField(source='contact.phone')
 
     class Meta:
         model = JournalEntry
-        fields = ['id', 'date', 'description', 'contact', 'contact_name', 'created_at', 'items']
+        fields = ['id', 'date', 'description', 'contact', 'contact_name', 'contact phone', 'created_at', 'items']
 
     def validate(self, attrs):
         items_data = attrs.get('items', [])

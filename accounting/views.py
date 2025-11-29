@@ -1477,7 +1477,8 @@ class CreateSalesInvoiceView(APIView):
         
         return Response(
             {"status": "Penjualan (termasuk PPN) berhasil dicatat. 2 Jurnal (Penjualan & HPP) telah dibuat.",
-             "id": entry_penjualan.id},
+             "id": entry_penjualan.id
+            },
             status=status.HTTP_201_CREATED
             
         )

@@ -116,7 +116,12 @@ const InputPenjualan = () => {
       const response = await axios.post('/api/sales/invoice/', postData);
       
       // 2. Ambil ID Transaksi Baru
-      const newId = response.data.id; 
+      const newId = response.data.id; // Backend ngirim ID di sini
+      
+      if (!newId) {
+          throw new Error("Backend tidak mengembalikan ID Transaksi.");
+      }
+
       setLastTransactionId(newId);
 
       // 3. Siapkan Data Print
