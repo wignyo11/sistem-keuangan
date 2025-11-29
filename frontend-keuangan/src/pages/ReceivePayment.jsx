@@ -11,6 +11,7 @@ import {
   Card,
   Select,
 } from 'antd';
+import { TransactionOutlined } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -88,8 +89,19 @@ const ReceivePayment = () => {
 
   return (
     <Card 
-      title={<Title level={2}>Terima Pembayaran (Pelunasan Piutang)</Title>}
-      style={{ maxWidth: 600, margin: 'auto', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', borderRadius: '8px' }}
+              // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+              title={
+                <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
+                  <TransactionOutlined style={{ marginRight: 8 }} /> Input Penerimaan Piutang
+                </Title>
+              } 
+              style={{ 
+                maxWidth: 900, 
+                margin: '20px auto', 
+                borderRadius: 12, 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                // Background card otomatis ngikut tema (Putih/Gelap)
+              }}
     >
       <p>Gunakan form ini saat Anda menerima pembayaran dari *customer* untuk melunasi piutang mereka.</p>
       
