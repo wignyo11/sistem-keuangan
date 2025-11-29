@@ -1354,10 +1354,6 @@ class PurchaseInventoryView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')    
 class CreateSalesInvoiceView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant | IsSales]
-    """
-    API endpoint 'pintasan' kustom untuk MENCATAT PENJUALAN BARANG INVENTORI.
-    (Versi UPGRADE - Sudah mendukung PPN Keluaran)
-    """
     
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -1374,113 +1370,103 @@ class CreateSalesInvoiceView(APIView):
             akun_kas = Account.objects.get(number='1-1000')
             akun_piutang = Account.objects.get(number='1-1100')
             akun_pendapatan = Account.objects.get(number='4-1000')
-            akun_ppn_keluaran = Account.objects.get(number='2-1200') # <-- AKUN PAJAK LO
+            akun_ppn_keluaran = Account.objects.get(number='2-1200')
 
         except Account.DoesNotExist as e:
             return Response(
-                {"error": f"Akun default (Kas/Piutang/Pendapatan/PPN Keluaran) tidak ditemukan: {str(e)}."},
+                {"error": f"Akun default tidak ditemukan: {str(e)}"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         if tipe_pembayaran == 'TUNAI':
             akun_debit_penjualan = akun_kas
-        else: # 'KREDIT'
+        else: 
             akun_debit_penjualan = akun_piutang
         
-        # --- MULAI SIHIR PAJAK ---
-        total_tagihan = Decimal('0.0') # Ini yg masuk ke Kas/Piutang
-        total_pendapatan_bersih = Decimal('0.0') # Ini yg masuk ke Laba Rugi
-        total_ppn_keluaran = Decimal('0.0') # Ini yg masuk ke Utang Pajak
-        total_hpp = Decimal('0.0')
+        # Variabel Penampung
+        total_tagihan = Decimal('0.0')
+        total_pendapatan_bersih = Decimal('0.0')
+        total_ppn_keluaran = Decimal('0.0')
         
         description = data.get('description') or "Penjualan Barang"
         
-        # Buat Jurnal Induk PENJUALAN
+        # 1. BUAT JURNAL INDUK (Variable: entry_penjualan)
+        # ----------------------------------------------------
         entry_penjualan = JournalEntry.objects.create(
             date=data['date'],
             description=description,
             contact_id=data.get('contact_id'),
         )
         
-        # Buat Jurnal Induk HPP
+        # 2. BUAT JURNAL HPP (Variable: entry_hpp)
+        # ----------------------------------------------------
         entry_hpp = JournalEntry.objects.create(
             date=data['date'],
             description=f"HPP atas: {description}",
             contact_id=data.get('contact_id'),
         )
         
-        # Loop SETIAP barang yang dijual
         for item_data in invoice_items:
             try:
                 item = InventoryItem.objects.get(id=item_data['item_id'])
             except InventoryItem.DoesNotExist:
-                raise serializers.ValidationError(f"Barang dengan ID {item_data['item_id']} tidak ditemukan.")
+                # Rollback otomatis karena transaction.atomic
+                raise serializers.ValidationError(f"Barang ID {item_data['item_id']} tidak ditemukan.")
 
             if item_data['quantity'] > item.quantity_on_hand:
-                raise serializers.ValidationError(f"Stok '{item.name}' tidak cukup. Sisa stok: {item.quantity_on_hand}")
+                raise serializers.ValidationError(f"Stok '{item.name}' tidak cukup.")
             
-            # --- A. Hitung Angka Penjualan (BARU) ---
+            # Hitung Angka
             harga_jual_barang = item_data['quantity'] * item_data['unit_price']
             ppn_keluaran = harga_jual_barang * (item_data['tax_rate'] / Decimal('100.0'))
             
             total_pendapatan_bersih += harga_jual_barang
             total_ppn_keluaran += ppn_keluaran
             
-            # --- B. Hitung Angka HPP (SAMA) ---
             item_total_hpp = item_data['quantity'] * item.average_cost
-            total_hpp += item_total_hpp
             
-            # --- C. Buat Jurnal Item HPP (SAMA) ---
-            JournalItem.objects.create(
-                journal_entry=entry_hpp, account=item.hpp_account, debit=item_total_hpp, credit=Decimal('0.0')
-            )
-            JournalItem.objects.create(
-                journal_entry=entry_hpp, account=item.asset_account, debit=Decimal('0.0'), credit=item_total_hpp
-            )
+            # Jurnal Item HPP (Pakai variable entry_hpp)
+            JournalItem.objects.create(journal_entry=entry_hpp, account=item.hpp_account, debit=item_total_hpp, credit=Decimal('0.0'))
+            JournalItem.objects.create(journal_entry=entry_hpp, account=item.asset_account, debit=Decimal('0.0'), credit=item_total_hpp)
             
-            # --- D. Buat Log Inventori (SAMA) ---
+            # Log Inventori
             InventoryLog.objects.create(
                 item=item, date=data['date'], transaction_type='JUAL',
                 quantity=item_data['quantity'], total_cost=item_total_hpp, journal_entry=entry_hpp
             )
-            
-            # --- E. Hitung Ulang Stok Barang (SAMA) ---
             item.recalculate_inventory()
 
-        # 7. Selesaikan Jurnal Penjualan (setelah totalnya dapet)
+        # 3. SELESAIKAN JURNAL PENJUALAN (Pakai variable entry_penjualan)
+        # ----------------------------------------------------
         
-        # (Kredit) Pendapatan -> Seharga barangnya
+        # Kredit Pendapatan
         JournalItem.objects.create(
-            journal_entry=entry_penjualan,
-            account=akun_pendapatan,
-            debit=Decimal('0.0'),
-            credit=total_pendapatan_bersih
+            journal_entry=entry_penjualan, account=akun_pendapatan, debit=Decimal('0.0'), credit=total_pendapatan_bersih
         )
         
-        # (Kredit) PPN Keluaran -> Seharga pajaknya
+        # Kredit PPN
         if total_ppn_keluaran > 0:
             JournalItem.objects.create(
-                journal_entry=entry_penjualan,
-                account=akun_ppn_keluaran,
-                debit=Decimal('0.0'),
-                credit=total_ppn_keluaran
+                journal_entry=entry_penjualan, account=akun_ppn_keluaran, debit=Decimal('0.0'), credit=total_ppn_keluaran
             )
         
-        # (Debit) Kas / Piutang -> Seharga TOTAL TAGIHAN
+        # Debit Kas/Piutang
         total_tagihan = total_pendapatan_bersih + total_ppn_keluaran
         JournalItem.objects.create(
-            journal_entry=entry_penjualan,
-            account=akun_debit_penjualan,
-            debit=total_tagihan,
-            credit=Decimal('0.0')
+            journal_entry=entry_penjualan, account=akun_debit_penjualan, debit=total_tagihan, credit=Decimal('0.0')
         )
         
+        # 4. RETURN RESPONSE (Disini Kuncinya!)
+        # ----------------------------------------------------
+        # Pastikan kita memanggil 'entry_penjualan.id'
+        # Karena variable 'entry_penjualan' dibuat di poin nomor 1 dan masih dalam scope yang sama.
+        
         return Response(
-            {"status": "Penjualan (termasuk PPN) berhasil dicatat. 2 Jurnal (Penjualan & HPP) telah dibuat.",
-             "id": entry_penjualan.id
+            {
+                "status": "Penjualan berhasil dicatat.",
+                "id": entry_penjualan.id  # <--- INI PASTI BENAR SEKARANG
             },
             status=status.HTTP_201_CREATED
-            
         )
     
 class ReceivePaymentView(APIView):
