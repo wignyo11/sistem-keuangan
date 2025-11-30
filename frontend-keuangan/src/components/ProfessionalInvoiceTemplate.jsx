@@ -17,8 +17,13 @@ export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
   
   // Safety Check
   if (!data || !data.journal) {
-      // Return div kosong kalau data belum ada (biar ref tetep nempel)
-      return <div ref={ref}></div>;
+      return (
+        <div style={styles.page}>
+            <div style={{textAlign:'center', marginTop: 100, color:'#ccc'}}>
+                Memuat Data Invoice...
+            </div>
+        </div>
+      );
   }
 
   const { journal, items } = data;

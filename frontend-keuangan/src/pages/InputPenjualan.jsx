@@ -309,8 +309,10 @@ const InputPenjualan = () => {
         </div>
       </Modal>
 
-      <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
-         <ProfessionalInvoiceTemplate ref={componentRef} data={printData} />
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+         <div ref={componentRef}>
+            <ProfessionalInvoiceTemplate data={printData} />
+         </div>
       </div>
     </>
   );
