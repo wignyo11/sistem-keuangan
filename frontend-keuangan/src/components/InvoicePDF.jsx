@@ -114,7 +114,7 @@ export const InvoicePDF = ({ data }) => {
         {/* HEADER */}
         <View style={styles.headerContainer}>
           <View style={styles.companyColumn}>
-            <Text style={styles.companyName}>EQUILIB FARM</Text>
+            <Text style={styles.companyName}>PT. JOKO SELADA JAYA ABADI</Text>
             <Text style={styles.companyAddress}>
               Jl. Agrikultur Modern No. 88{'\n'}
               Jawa Tengah, Indonesia 50123{'\n'}
