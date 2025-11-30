@@ -1,13 +1,13 @@
 // File: src/pages/Dashboard.jsx
-// (VERSI FINAL: ANT DESIGN PRO STYLE - SINKRON DENGAN BACKEND BARU)
+// (VERSI FINAL: ANTI-CRASH / SAFE MODE)
 
 import React, { useEffect, useState } from 'react';
 import { 
   Card, Row, Col, Typography, Spin, Alert, 
-  List, Tag, Tabs, Avatar, Tooltip as AntTooltip, Divider 
+  List, Tabs, Avatar, Tooltip as AntTooltip, Divider 
 } from 'antd';
 import { 
-  InfoCircleOutlined, CaretUpOutlined, CaretDownOutlined 
+  InfoCircleOutlined 
 } from '@ant-design/icons';
 import { 
   ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -18,26 +18,26 @@ import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-// Palet Warna Premium (Ala Ant Design Pro)
 const COLORS = ['#5B8FF9', '#5AD8A6', '#5D7092', '#F6BD16', '#E8684A'];
 
-// Helper Format Rupiah
 const formatRupiah = (value) => 
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value || 0);
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [chartTab, setChartTab] = useState('omzet'); // State buat switch tab grafik
+  const [error, setError] = useState(null);
+  const [chartTab, setChartTab] = useState('omzet');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Kita pakai URL baru yang sudah diperbaiki di urls.py
-        const res = await axios.get('/api/dashboard-summary/');
+        const res = await axios.get('/api/reports/dashboard-summary/'); // <-- Pastikan URL ini bener sesuai urls.py lo
         setData(res.data);
       } catch (error) {
         console.error("Dashboard Error:", error);
+        // Jangan set error biar ga blank total, biarin data null nanti dihandle di bawah
+        setError("Gagal mengambil data terbaru.");
       } finally {
         setLoading(false);
       }
@@ -45,13 +45,24 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div style={{height:'80vh', display:'flex', justifyContent:'center', alignItems:'center'}}><Spin size="large" /></div>;
-  if (!data) return <Alert message="Gagal memuat data dashboard." type="error" showIcon />;
+  if (loading) return <div style={{height:'80vh', display:'flex', justifyContent:'center', alignItems:'center'}}><Spin size="large" tip="Memuat Dashboard..." /></div>;
+  
+  // Kalau error parah (misal 500), tampilin alert tapi jangan blank
+  if (error && !data) return <Alert message="Error" description="Gagal terhubung ke server." type="error" showIcon style={{margin: 20}} />;
 
-  // Destructure Data dari Backend Baru
-  const { kpi, trend_chart, ranking, pie_chart, recent_activity } = data;
+  // --- SABUK PENGAMAN (SAFE DESTRUCTURING) ---
+  // Kalau 'data' null, kita pake object kosong {} biar gak error undefined
+  const safeData = data || {}; 
+  
+  // Kalau 'kpi' belum ada, kita pake object kosong {}
+  const kpi = safeData.kpi || {}; 
+  
+  // Kalau array belum ada, pake array kosong []
+  const trend_chart = safeData.trend_chart || [];
+  const ranking = safeData.ranking || [];
+  const pie_chart = safeData.pie_chart || [];
+  const recent_activity = safeData.recent_activity || [];
 
-  // --- KOMPONEN KARTU KECIL (PRO CARD) ---
   const ProCard = ({ title, value, footerTitle, footerValue, colorIndex }) => (
     <Card bordered={false} bodyStyle={{ padding: '20px 24px 8px' }} style={{ height: '100%', borderRadius: 8, boxShadow: '0 1px 2px -2px rgba(0,0,0,0.16), 0 3px 6px 0 rgba(0,0,0,0.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(0,0,0,0.45)' }}>
@@ -64,7 +75,6 @@ const Dashboard = () => {
         {value}
       </div>
       
-      {/* Visual Bar Mini (Hiasan) */}
       <div style={{ height: 10, background: '#f0f0f0', borderRadius: 5, overflow: 'hidden', marginBottom: 15 }}>
          <div style={{ width: '70%', height: '100%', background: COLORS[colorIndex] || COLORS[0] }}></div>
       </div>
@@ -79,18 +89,19 @@ const Dashboard = () => {
 
   return (
     <div style={{ paddingBottom: 40 }}>
-      {/* HEADER: Judul Halaman */}
       <div style={{ marginBottom: 24 }}>
          <Title level={3} style={{ marginBottom: 0 }}>Executive Dashboard</Title>
          <Text type="secondary">Analisis performa bisnis real-time</Text>
       </div>
+      
+      {error && <Alert message={error} type="warning" showIcon closable style={{marginBottom: 20}} />}
 
-      {/* 1. HEADER RINGKASAN (4 KARTU) */}
+      {/* 1. KPI CARDS (Pake Optional Chaining ?. dan Fallback || 0) */}
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={12} lg={6}>
           <ProCard 
             title="Total Kas & Bank" 
-            value={formatRupiah(kpi.kas)} 
+            value={formatRupiah(kpi.kas || 0)} 
             footerTitle="Likuiditas saat ini" footerValue="Aman"
             colorIndex={0}
           />
@@ -98,7 +109,7 @@ const Dashboard = () => {
         <Col xs={24} sm={12} lg={6}>
           <ProCard 
             title="Omzet Bulan Ini" 
-            value={formatRupiah(kpi.pendapatan)} 
+            value={formatRupiah(kpi.pendapatan || 0)} 
             footerTitle="Total Pendapatan" footerValue="Operasional"
             colorIndex={1}
           />
@@ -106,22 +117,22 @@ const Dashboard = () => {
         <Col xs={24} sm={12} lg={6}>
           <ProCard 
             title="Laba Bersih" 
-            value={formatRupiah(kpi.laba_bersih)} 
+            value={formatRupiah(kpi.laba_bersih || 0)} 
             footerTitle="Profitabilitas" footerValue="Bulan Ini"
-            colorIndex={4} // Merah/Oranye buat Laba
+            colorIndex={4} 
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <ProCard 
             title="Piutang Pelanggan" 
-            value={formatRupiah(kpi.piutang)} 
+            value={formatRupiah(kpi.piutang || 0)} 
             footerTitle="Tagihan Belum Lunas" footerValue="Segera Tagih"
-            colorIndex={3} // Kuning
+            colorIndex={3} 
           />
         </Col>
       </Row>
 
-      {/* 2. BAGIAN UTAMA (GRAFIK + RANKING) */}
+      {/* 2. BAGIAN UTAMA */}
       <Card 
         bordered={false} 
         style={{ marginTop: 24, borderRadius: 8, boxShadow: '0 1px 2px -2px rgba(0,0,0,0.16), 0 3px 6px 0 rgba(0,0,0,0.12)' }}
@@ -133,14 +144,12 @@ const Dashboard = () => {
                 size="large" 
                 tabBarStyle={{ marginBottom: 24 }}
                 onChange={setChartTab}
-                items={[
-                    { label: 'Tren Profitabilitas (6 Bulan)', key: 'omzet' },
-                ]}
+                items={[{ label: 'Tren Profitabilitas (6 Bulan)', key: 'omzet' }]}
             />
         </div>
         
         <Row>
-            {/* KIRI: GRAFIK BESAR */}
+            {/* KIRI: GRAFIK */}
             <Col xs={24} xl={16} style={{ padding: '0 24px 24px' }}>
                 <div style={{ height: 350, width: '100%' }}>
                   <ResponsiveContainer>
@@ -159,25 +168,26 @@ const Dashboard = () => {
                 </div>
             </Col>
 
-            {/* KANAN: KOMPOSISI BEBAN (PIE CHART) */}
+            {/* KANAN: PIE CHART */}
             <Col xs={24} xl={8} style={{ padding: '0 24px 24px' }}>
                 <Title level={5} style={{marginBottom: 20}}>Komposisi Beban (Top 5)</Title>
                 <div style={{ height: 200, marginBottom: 20 }}>
-                    <ResponsiveContainer>
-                        <PieChart>
-                            <Pie data={pie_chart} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
-                                {pie_chart && pie_chart.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(val) => formatRupiah(val)} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {pie_chart.length > 0 ? (
+                        <ResponsiveContainer>
+                            <PieChart>
+                                <Pie data={pie_chart} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
+                                    {pie_chart.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(val) => formatRupiah(val)} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : <div style={{textAlign:'center', marginTop:80, color:'#ccc'}}>Belum ada data beban</div>}
                 </div>
-                {/* Legend List */}
                 <List
                     size="small"
-                    dataSource={pie_chart || []}
+                    dataSource={pie_chart}
                     renderItem={(item, index) => (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 12 }}>
                             <span>
@@ -192,15 +202,15 @@ const Dashboard = () => {
         </Row>
       </Card>
 
-      {/* 3. ROW BAWAH: RANKING & AKTIVITAS */}
+      {/* 3. ROW BAWAH */}
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         
-        {/* RANKING PRODUK */}
+        {/* RANKING */}
         <Col xs={24} lg={12}>
             <Card title="Produk Terlaris" bordered={false} style={{ borderRadius: 8, height: '100%', boxShadow: '0 1px 2px -2px rgba(0,0,0,0.16)' }}>
                 <List
                     itemLayout="horizontal"
-                    dataSource={ranking || []}
+                    dataSource={ranking}
                     renderItem={(item, index) => (
                         <List.Item>
                             <List.Item.Meta
@@ -226,16 +236,16 @@ const Dashboard = () => {
                         </List.Item>
                     )}
                 />
-                {(!ranking || ranking.length === 0) && <div style={{textAlign:'center', padding:20, color:'#ccc'}}>Belum ada data penjualan</div>}
+                {ranking.length === 0 && <div style={{textAlign:'center', padding:20, color:'#ccc'}}>Belum ada data penjualan</div>}
             </Card>
         </Col>
 
-        {/* RECENT ACTIVITY */}
+        {/* RECENT */}
         <Col xs={24} lg={12}>
             <Card title="Aktivitas Terakhir" bordered={false} style={{ borderRadius: 8, height: '100%', boxShadow: '0 1px 2px -2px rgba(0,0,0,0.16)' }}>
                 <List
                     itemLayout="horizontal"
-                    dataSource={recent_activity || []}
+                    dataSource={recent_activity}
                     renderItem={(item) => (
                         <List.Item>
                             <List.Item.Meta
@@ -249,6 +259,7 @@ const Dashboard = () => {
                         </List.Item>
                     )}
                 />
+                {recent_activity.length === 0 && <div style={{textAlign:'center', padding:20, color:'#ccc'}}>Belum ada transaksi</div>}
             </Card>
         </Col>
       </Row>
