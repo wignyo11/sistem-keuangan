@@ -735,123 +735,6 @@ class CreateSalesReturnView(APIView):
 
 class DashboardSummaryView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant]
-
-    def get(self, request, *args, **kwargs):
-        today = date.today()
-        start_of_month = today.replace(day=1)
-        
-        # --- 1. KPI & LABA RUGI ---
-        items_up_to_today = JournalItem.objects.filter(journal_entry__date__lte=today)
-        items_this_month = JournalItem.objects.filter(journal_entry__date__gte=start_of_month)
-
-        try:
-            # Kas
-            akun_kas_list = Account.objects.filter(number__startswith='1-10')
-            total_kas = sum(self.get_single_balance(items_up_to_today, acc) for acc in akun_kas_list)
-
-            # Piutang
-            akun_piutang = Account.objects.filter(number__startswith='1-11').first()
-            total_piutang = self.get_single_balance(items_up_to_today, akun_piutang) if akun_piutang else 0
-
-            # Utang
-            akun_utang = Account.objects.filter(number__startswith='2-10').first()
-            total_utang = self.get_single_balance(items_up_to_today, akun_utang) if akun_utang else 0
-
-            # Laba Rugi Bulan Ini
-            rev_data = items_this_month.filter(account__type='PENDAPATAN').aggregate(c=Sum('credit'), d=Sum('debit'))
-            rev_month = (rev_data['c'] or 0) - (rev_data['d'] or 0)
-            
-            # PERBAIKAN 1: Pake account__type
-            exp_data = items_this_month.filter(Q(account__type='BEBAN') | Q(account__type='BEBAN_LAIN')).aggregate(d=Sum('debit'), c=Sum('credit'))
-            exp_month = (exp_data['d'] or 0) - (exp_data['c'] or 0)
-            
-            laba_bersih = rev_month - exp_month
-
-        except Exception as e:
-            # Print error ke terminal biar ketahuan kalo ada masalah lain
-            print(f"Error KPI: {e}")
-            total_kas = 0; total_piutang = 0; total_utang = 0; rev_month = 0; laba_bersih = 0
-
-        # --- 2. TREN 6 BULAN ---
-        trend_data = []
-        start_trend = today - relativedelta(months=5)
-        for i in range(6):
-            curr = start_trend + relativedelta(months=i)
-            ms = curr.replace(day=1)
-            me = ms + relativedelta(months=1) - relativedelta(days=1)
-            
-            items_m = JournalItem.objects.filter(journal_entry__date__range=[ms, me])
-            
-            # Pendapatan
-            r = items_m.filter(account__type='PENDAPATAN').aggregate(c=Sum('credit'), d=Sum('debit'))
-            val_rev = (r['c'] or 0) - (r['d'] or 0)
-            
-            # Beban (INI BAGIAN YANG TADI EROR)
-            # PERBAIKAN 2: Ditambah 'account__' di depan 'type__in'
-            e = items_m.filter(account__type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']).aggregate(d=Sum('debit'), c=Sum('credit'))
-            val_exp = (e['d'] or 0) - (e['c'] or 0)
-            
-            trend_data.append({
-                "name": ms.strftime('%b'),
-                "pendapatan": val_rev,
-                "beban": val_exp,
-                "laba": val_rev - val_exp
-            })
-
-        # --- 3. RANKING PRODUK ---
-        top_products = InventoryLog.objects.filter(transaction_type='JUAL')\
-            .values('item__name')\
-            .annotate(total_qty=Sum('quantity'), total_hpp=Sum('total_cost'))\
-            .order_by('-total_qty')[:5]
-
-        ranking_list = []
-        for p in top_products:
-            ranking_list.append({
-                "name": p['item__name'],
-                "quantity_sold": p['total_qty'],
-                "estimasi_nilai": p['total_hpp']
-            })
-
-        # --- 4. PIE CHART ---
-        expense_comp = []
-        # PERBAIKAN 3: Pake account__type__in biar aman
-        beban_accs = Account.objects.filter(type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN'])
-        for acc in beban_accs:
-            bal = self.get_single_balance(items_this_month, acc)
-            if bal > 0: expense_comp.append({"name": acc.name, "value": bal})
-        
-        expense_comp.sort(key=lambda x: x['value'], reverse=True)
-        final_pie = expense_comp[:5]
-
-        # --- 5. RECENT TRANSACTIONS ---
-        recent_entries = JournalEntry.objects.all().order_by('-created_at')[:5]
-        recent_list = []
-        for entry in recent_entries:
-            total_val = entry.items.filter(debit__gt=0).aggregate(Sum('debit'))['debit__sum'] or 0
-            recent_list.append({
-                "id": entry.id,
-                "date": entry.date,
-                "description": entry.description,
-                "total": total_val,
-                "contact": entry.contact.name if entry.contact else "-"
-            })
-
-        return Response({
-            "kpi": {
-                "kas": total_kas, "piutang": total_piutang, 
-                "utang": total_utang, "laba_bersih": laba_bersih,
-                "pendapatan": rev_month
-            },
-            "trend_chart": trend_data,
-            "ranking": ranking_list, 
-            "pie_chart": final_pie,
-            "recent_activity": recent_list
-        })
-
-    def get_single_balance(self, queryset, account):
-        res = queryset.filter(account=account).aggregate(c=Sum('credit'), d=Sum('debit'))
-        return (res['c'] or 0) - (res['d'] or 0) if account.normal_balance == 'KREDIT' else (res['d'] or 0) - (res['c'] or 0)class DashboardSummaryView(APIView):
-    permission_classes = [IsAuthenticated, IsOwner | IsAccountant]
     """
     API Dashboard Sultan: Mengirim data KPI, Grafik Tren, Ranking, Pie Chart, dan Aktivitas.
     """
@@ -991,7 +874,7 @@ class DashboardSummaryView(APIView):
             "recent_activity": recent_list
         })
 
-    # Helper hitung saldo akun (Credit - Debit atau Debit - Credit)
+    # --- HELPER METHOD (Harus di dalam Class, sejajar dengan def get) ---
     def get_single_balance(self, queryset, account):
         res = queryset.filter(account=account).aggregate(c=Sum('credit'), d=Sum('debit'))
         if account.normal_balance == 'KREDIT':
