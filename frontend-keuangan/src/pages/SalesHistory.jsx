@@ -6,6 +6,8 @@ import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
 import { pdf } from '@react-pdf/renderer'; // Import PDF
 import { InvoicePDF } from '../components/InvoicePDF'; // Import Template
+import { UndoOutlined
+} from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -76,7 +78,21 @@ const SalesHistory = () => {
   ];
 
   return (
-    <Card title={<Title level={3} style={{margin:0}}>Riwayat Penjualan</Title>}>
+    <Card 
+                // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+                title={
+                  <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
+                    <UndoOutlined style={{ marginRight: 8 }} /> Riwayat Penjualan
+                  </Title>
+                } 
+                style={{ 
+                  maxWidth: 900, 
+                  margin: '20px auto', 
+                  borderRadius: 12, 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  // Background card otomatis ngikut tema (Putih/Gelap)
+                }}
+  >
       <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
     </Card>
   );

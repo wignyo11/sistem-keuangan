@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import { 
   MinusCircleOutlined, PlusOutlined, SaveOutlined, PrinterOutlined, 
-  ReloadOutlined, CheckCircleOutlined 
+  ReloadOutlined, CheckCircleOutlined , DollarCircleOutlined
 } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
@@ -145,8 +145,19 @@ const InputPenjualan = () => {
   return (
     <>
       <Card 
-        title={<Title level={3} style={{margin:0}}>Input Penjualan (Stok Keluar)</Title>}
-        style={{ maxWidth: 1000, margin: 'auto', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', borderRadius: '8px' }}
+                // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+                title={
+                  <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
+                    <DollarCircleOutlined style={{ marginRight: 8 }} /> Input Penjualan
+                  </Title>
+                } 
+                style={{ 
+                  maxWidth: 900, 
+                  margin: '20px auto', 
+                  borderRadius: 12, 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  // Background card otomatis ngikut tema (Putih/Gelap)
+                }}
       >
         <Form
           form={form}
