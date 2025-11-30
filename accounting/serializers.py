@@ -22,11 +22,12 @@ class JournalEntrySerializer(serializers.ModelSerializer):
     # Method Field biar Anti-Crash kalau kontak kosong
     contact_name = serializers.SerializerMethodField()
     contact_phone = serializers.SerializerMethodField()
+    invoice_details = serializers.SerializerMethodField()
 
     class Meta:
         model = JournalEntry
         # PERBAIKAN TYPO: 'contact_phone' (pake underscore)
-        fields = ['id', 'date', 'description', 'contact', 'contact_name', 'contact_phone', 'created_at', 'items']
+        fields = ['id', 'date', 'description', 'contact', 'contact_name', 'contact_phone', 'created_at', 'items', 'invoice_details']
 
     def get_contact_name(self, obj):
         if obj.contact: 
@@ -37,6 +38,46 @@ class JournalEntrySerializer(serializers.ModelSerializer):
         if obj.contact:
             return obj.contact.phone
         return ""
+    def get_invoice_details(self, obj):
+        # 1. Ambil Barang & Qty dari InventoryLog (Log HPP)
+        # Log ini menyimpan link ke jurnal HPP, bukan jurnal Penjualan.
+        # Jurnal Penjualan (obj) itu ID-nya beda sama Jurnal HPP (biasanya ID+1 atau ID-1).
+        # TAPI, kita punya 'contact' dan 'date' yang sama.
+        
+        # Cari InventoryLog yang terjadi di hari yang sama, kontak sama, tipe JUAL.
+        logs = InventoryLog.objects.filter(
+            journal_entry__date=obj.date,
+            journal_entry__contact=obj.contact,
+            transaction_type='JUAL'
+        )
+        
+        # 2. Ambil Total Penjualan (Omzet) dari Jurnal Ini
+        total_sales = 0
+        for item in obj.items.all():
+            if item.account.type == 'PENDAPATAN':
+                total_sales += item.credit
+
+        # 3. Gabungkan
+        # Ini estimasi: Kita bagi rata total penjualan dengan total qty.
+        # (Kelemahan: Kalau jual Selada Merah 10rb & Selada Hijau 5rb, harganya bakal dirata-rata).
+        # Tapi ini solusi terbaik tanpa nambah tabel baru.
+        
+        result = []
+        total_qty = sum(log.quantity for log in logs)
+        
+        if total_qty > 0:
+            avg_price = total_sales / total_qty
+            
+            for log in logs:
+                result.append({
+                    'name': log.item.name,      # Nama: Selada Merah
+                    'qty': log.quantity,        # Qty: 10
+                    'price': avg_price,         # Harga: 3000 (Hasil bagi rata)
+                    'total': log.quantity * avg_price
+                })
+        
+        # Kalau gak nemu log (misal jasa), balikin kosong biar frontend pake fallback
+        return result
     
     def validate(self, attrs):
         # Validasi manual cuma dipake kalau create lewat sini (Manual Journal)
