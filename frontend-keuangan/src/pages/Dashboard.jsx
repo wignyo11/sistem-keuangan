@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Card, Row, Col, Typography, Spin, Alert, 
-  List, Tabs, Avatar, Tooltip as AntTooltip, Divider 
+  List, Tabs, Avatar, Tooltip as AntTooltip, Divider, Space
 } from 'antd';
 import { 
   InfoCircleOutlined 
