@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.1",
     "antd": "^5.28.0",
     "axios": "^1.13.2",
     "axios-jwt": "^4.0.3",
@@ -18,8 +19,8 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.5",
-    "react-to-print": "^3.2.0",
-    "recharts": "^3.4.1"
+    "recharts": "^3.4.1",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

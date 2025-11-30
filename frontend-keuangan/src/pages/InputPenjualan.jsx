@@ -1,40 +1,24 @@
 // File: src/pages/InputPenjualan.jsx
-// (VERSI PRO: Input Penjualan + Langsung Cetak Invoice)
+// (VERSI FINAL: Input PPN + Modal Sukses + Cetak PDF Stabil)
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Form,
-  Button,
-  DatePicker,
-  InputNumber,
-  Typography,
-  message,
-  Card,
-  Select,
-  Row,
-  Col,
-  Space,
-  Divider,
-  Input,
-  Modal // Tambah Modal
+  Form, Button, DatePicker, InputNumber, Typography, message, Card, Select, Row, Col, Space, Divider, Input, Modal
 } from 'antd';
 import { 
-  MinusCircleOutlined, 
-  PlusOutlined, 
-  SaveOutlined, 
-  PrinterOutlined, 
-  ReloadOutlined,
-  CheckCircleOutlined
+  MinusCircleOutlined, PlusOutlined, SaveOutlined, PrinterOutlined, 
+  ReloadOutlined, CheckCircleOutlined 
 } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
-import { useReactToPrint } from 'react-to-print'; // Import Print
-import { ProfessionalInvoiceTemplate } from '../components/ProfessionalInvoiceTemplate'; // Import Template
 
+// --- GANTI KE PDF GENERATOR (LEBIH STABIL) ---
+import { pdf } from '@react-pdf/renderer';
+import { InvoicePDF } from '../components/InvoicePDF';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-// Fungsi helper format Rupiah
+// Helper Rupiah
 const formatRupiah = (value) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -51,19 +35,12 @@ const InputPenjualan = () => {
   const [inventoryItems, setInventoryItems] = useState([]); 
   const [contacts, setContacts] = useState([]); 
   
-  // State untuk Fitur Cetak
+  // State Modal & Cetak
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [lastTransactionId, setLastTransactionId] = useState(null);
-  const [printData, setPrintData] = useState(null);
-  const componentRef = useRef();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Loading khusus tombol cetak
 
-  // Hook Print
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `Invoice-${lastTransactionId}`,
-  });
-
-  // Ambil data BARANG dan KONTAK CUSTOMER
+  // Ambil data Master
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,10 +48,8 @@ const InputPenjualan = () => {
           axios.get('/api/inventory-items/'),
           axios.get('/api/contacts/')
         ]);
-
         setInventoryItems(itemsRes.data);
         setContacts(contactsRes.data.filter(c => c.type === 'CUSTOMER'));
-
       } catch (err) {
         message.error('Gagal memuat data master (barang/kontak).');
       }
@@ -82,19 +57,7 @@ const InputPenjualan = () => {
     fetchData();
   }, []);
 
-  // Fungsi Ambil Data Invoice buat Diprint
-  const fetchInvoiceData = async (id) => {
-    try {
-      const res = await axios.get(`/api/journal-entries/${id}/`);
-      setPrintData({
-        journal: res.data,
-        items: res.data.items 
-      });
-    } catch (error) {
-      console.error("Gagal ambil data invoice:", error);
-    }
-  };
-
+  // --- FUNGSI SUBMIT (SIMPAN DATA) ---
   const handleSubmit = async (values) => {
     setLoading(true);
 
@@ -112,41 +75,61 @@ const InputPenjualan = () => {
     };
 
     try {
-      // 1. Simpan Transaksi
+      // 1. Kirim ke Backend
       const response = await axios.post('/api/sales/invoice/', postData);
       
-      // 2. Ambil ID Transaksi Baru
-      const newId = response.data.id; // Backend ngirim ID di sini
-      
-      if (!newId) {
-          throw new Error("Backend tidak mengembalikan ID Transaksi.");
-      }
+      // 2. Tangkap ID Baru
+      const newId = response.data.id; 
+      if (!newId) throw new Error("Backend tidak mengembalikan ID.");
 
       setLastTransactionId(newId);
 
-      // 3. Siapkan Data Print
-      await fetchInvoiceData(newId);
-
-      // 4. Reset Form & Tampilkan Modal Sukses
+      // 3. Reset Form & Munculin Modal Sukses
       form.resetFields(); 
       setTotalInvoice(0);
       setSuccessModalVisible(true); 
 
     } catch (err) {
-      if (err.response && err.response.data) {
-        const errorDetail = err.response.data.detail || err.response.data[0];
-        const errorMsg = Array.isArray(errorDetail) ? errorDetail[0] : (errorDetail || 'Gagal mencatat penjualan.');
-        message.error(`Gagal: ${errorMsg}`);
-      } else {
-        message.error('Gagal mencatat penjualan.');
-      }
+      const errorMsg = err.response?.data?.error || 'Gagal mencatat penjualan.';
+      message.error(errorMsg);
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  // --- FUNGSI CETAK PDF (BARU & STABIL) ---
+  const handlePrintPDF = async () => {
+    if (!lastTransactionId) return;
+    setIsGeneratingPdf(true); // Nyalain loading di tombol
+    
+    try {
+        // 1. Ambil data detail dari server
+        const res = await axios.get(`/api/journal-entries/${lastTransactionId}/`);
+        
+        // 2. Siapkan data buat template
+        const invoiceData = { 
+            journal: res.data, 
+            items: res.data.items 
+        };
+
+        // 3. Generate PDF Blob di Memori (Gak perlu render di layar)
+        const blob = await pdf(<ProfessionalInvoiceTemplate data={invoiceData} />).toBlob();
+        
+        // 4. Buka di Tab Baru (User tinggal print dari browser)
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        
+    } catch (error) {
+        console.error(error);
+        message.error("Gagal membuat PDF.");
+    } finally {
+        setIsGeneratingPdf(false); // Matiin loading
+    }
+  };
+  // ----------------------------------------
   
-  // Kalkulator Total
+  // Kalkulator Total Realtime
   const [totalInvoice, setTotalInvoice] = useState(0);
   const handleFormChange = () => {
     const items = form.getFieldValue('items') || [];
@@ -172,7 +155,7 @@ const InputPenjualan = () => {
           onValuesChange={handleFormChange}
           initialValues={{ date: dayjs(), tipe_pembayaran: 'TUNAI', items: [{}] }}
         >
-          {/* --- BARIS 1: INFO INDUK --- */}
+          {/* --- BAGIAN ATAS FORM --- */}
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="date" label="Tanggal Penjualan" rules={[{ required: true }]}>
@@ -204,7 +187,7 @@ const InputPenjualan = () => {
 
           <Divider orientation="left">Daftar Barang</Divider>
 
-          {/* --- BARIS 2: FORM DINAMIS --- */}
+          {/* --- BAGIAN LIST BARANG --- */}
           <Form.List
             name="items"
             rules={[{ validator: async (_, items) => { if (!items || items.length < 1) { return Promise.reject(new Error('Minimal harus ada 1 barang.'));}}}]}
@@ -252,7 +235,6 @@ const InputPenjualan = () => {
             )}
           </Form.List>
 
-          {/* --- BARIS 3: TOTAL & SUBMIT --- */}
           <Row justify="end" style={{ marginTop: '24px' }}>
             <Col>
               <Title level={4}>Total Tagihan: {formatRupiah(totalInvoice)}</Title>
@@ -269,7 +251,7 @@ const InputPenjualan = () => {
         </Form>
       </Card>
 
-      {/* --- MODAL SUKSES & CETAK (INI YANG BARU) --- */}
+      {/* --- MODAL SUKSES & CETAK --- */}
       <Modal
         open={successModalVisible}
         onCancel={() => setSuccessModalVisible(false)}
@@ -286,15 +268,16 @@ const InputPenjualan = () => {
             <Divider />
             
             <Space direction="vertical" style={{ width: '100%' }}>
+                {/* TOMBOL CETAK PDF (PANGGIL FUNGSI BARU) */}
                 <Button 
                     type="primary" 
                     size="large" 
                     icon={<PrinterOutlined />} 
                     block 
-                    onClick={handlePrint}
-                    disabled={!printData} // Tunggu data siap
+                    onClick={handlePrintPDF} 
+                    loading={isGeneratingPdf} // Ada loadingnya pas lagi generate
                 >
-                    Cetak Invoice
+                    Download / Cetak Invoice PDF
                 </Button>
                 
                 <Button 
@@ -308,10 +291,6 @@ const InputPenjualan = () => {
             </Space>
         </div>
       </Modal>
-
-      <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
-         <ProfessionalInvoiceTemplate ref={componentRef} data={printData} />
-      </div>
     </>
   );
 };
