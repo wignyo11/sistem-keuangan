@@ -1,57 +1,60 @@
 // File: src/pages/SalesHistory.jsx
-// (VERSI FIX: AUTO-PRINT SAAT DATA SIAP)
+// (VERSI FIX: Cetak Ulang Invoice dengan Tampilan Profesional)
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Button, Card, Typography, message } from 'antd';
-import { PrinterOutlined } from '@ant-design/icons';
+import { Table, Button, Card, Typography, message, Tag, Space } from 'antd';
+import { PrinterOutlined, HistoryOutlined } from '@ant-design/icons';
 import axios from '../utils/axiosInstance';
 import dayjs from 'dayjs';
 import { useReactToPrint } from 'react-to-print';
-import { ProfessionalInvoiceTemplate } from '../components/ProfessionalInvoiceTemplate';
+import { ProfessionalInvoiceTemplate } from '../components/ProfessionalInvoiceTemplate'; // Pake template ganteng
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const SalesHistory = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   
-  // State khusus buat print
-  const [printData, setPrintData] = useState(null);
-  const [isPrinting, setIsPrinting] = useState(false); // Flag penanda
+  // --- STATE KHUSUS PRINT ---
+  const [printData, setPrintData] = useState(null); // Data invoice yg mau dicetak
+  const [isReadyToPrint, setIsReadyToPrint] = useState(false); // Penanda kapan boleh print
   
-  const componentRef = useRef();
+  const componentRef = useRef(null);
 
   // Hook Print
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `Invoice-Reprint`,
+    documentTitle: `Reprint-Invoice`,
     onAfterPrint: () => {
-        setIsPrinting(false); // Reset flag setelah print
-        setPrintData(null);   // Bersihin data
-    }
+        setIsReadyToPrint(false); // Reset setelah selesai
+        setPrintData(null); 
+    },
+    removeAfterPrint: true
   });
 
-  // --- MAGIC EFFECT: Pantau Data, Kalau Siap Langsung Print ---
+  // --- EFEK OTOMATIS: Nunggu data masuk ke kertas, baru print ---
   useEffect(() => {
-    if (isPrinting && printData && printData.journal) {
-        // Kasih jeda dikit biar React sempet nge-render kertasnya
+    if (isReadyToPrint && printData) {
+        // Kasih jeda dikit biar React sempet nge-render tulisan di kertasnya
         setTimeout(() => {
             handlePrint();
-        }, 500); // Tunggu 0.5 detik
+        }, 500); 
     }
-  }, [printData, isPrinting, handlePrint]);
-  // ------------------------------------------------------------
+  }, [isReadyToPrint, printData, handlePrint]);
 
+  // --- AMBIL DATA RIWAYAT ---
   const fetchHistory = async () => {
     setLoading(true);
     try {
       const res = await axios.get('/api/journal-entries/');
+      // Filter cuma Jurnal Penjualan (yg ada akun Pendapatan/4-xxxx di kredit)
+      // Atau bisa cek deskripsi mengandung "Penjualan"
       const salesEntries = res.data.filter(entry => 
-         entry.items.some(item => item.account_number.startsWith('4-'))
+         entry.items.some(item => item.account_number.startsWith('4-')) 
       );
       setData(salesEntries);
     } catch (err) {
-      message.error("Gagal ambil data.");
+      message.error("Gagal ambil data riwayat.");
     } finally {
       setLoading(false);
     }
@@ -61,42 +64,75 @@ const SalesHistory = () => {
     fetchHistory();
   }, []);
 
+  // --- FUNGSI KLIK CETAK ---
   const onPrintClick = async (journalId) => {
-    const hide = message.loading('Menyiapkan dokumen...', 0);
+    const hideLoading = message.loading('Menyiapkan dokumen...', 0);
     try {
+        // 1. Ambil detail data dari server
         const res = await axios.get(`/api/journal-entries/${journalId}/`);
         
-        // 1. Set Data
+        // 2. Masukin ke state kertas
         setPrintData({
             journal: res.data,
             items: res.data.items 
         });
-        // 2. Angkat Bendera "Siap Print"
-        setIsPrinting(true); 
+
+        // 3. Bilang ke useEffect: "Woi, data udah siap nih, print dong!"
+        setIsReadyToPrint(true);
         
-        hide();
+        hideLoading();
     } catch (error) {
-        hide();
+        hideLoading();
         console.error(error);
-        message.error("Gagal memuat detail.");
-        setIsPrinting(false);
+        message.error("Gagal memuat detail transaksi.");
     }
   };
 
+  // Kolom Tabel
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 60, render: val => <b>#{val}</b> },
-    { title: 'Tanggal', dataIndex: 'date', render: val => dayjs(val).format('DD/MM/YY') },
-    { title: 'Pelanggan', dataIndex: 'contact_name', render: val => val || 'Umum' },
-    { title: 'Total', key: 'total', align: 'right',
+    { 
+        title: 'ID Invoice', 
+        dataIndex: 'id', 
+        width: 100, 
+        render: val => <Tag color="blue">#{val}</Tag> 
+    },
+    { 
+        title: 'Tanggal', 
+        dataIndex: 'date', 
+        width: 120, 
+        render: val => dayjs(val).format('DD/MM/YYYY') 
+    },
+    { 
+        title: 'Pelanggan', 
+        dataIndex: 'contact_name', 
+        render: val => <Text strong>{val || 'Pelanggan Umum'}</Text> 
+    },
+    { 
+        title: 'Total Penjualan', 
+        key: 'total', 
+        align: 'right',
         render: (_, record) => {
-            const total = record.items.filter(i => i.account_number.startsWith('4-')).reduce((sum, i) => sum + Number(i.credit), 0);
-            return new Intl.NumberFormat('id-ID').format(total);
+            // Hitung total dari sisi Kredit akun Pendapatan (4-xxxx)
+            // Ini biar akurat ngambil nominal omzetnya
+            const total = record.items
+                .filter(i => i.account_number.startsWith('4-'))
+                .reduce((sum, i) => sum + Number(i.credit), 0);
+            return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', maximumFractionDigits:0}).format(total);
         }
     },
     {
-      title: 'Aksi', key: 'action', width: 100, align: 'center',
+      title: 'Aksi',
+      key: 'action',
+      width: 100,
+      align: 'center',
       render: (_, record) => (
-        <Button type="dashed" size="small" icon={<PrinterOutlined />} onClick={() => onPrintClick(record.id)}>
+        <Button 
+            type="primary" 
+            ghost
+            size="small" 
+            icon={<PrinterOutlined />} 
+            onClick={() => onPrintClick(record.id)}
+        >
             Cetak
         </Button>
       ),
@@ -105,12 +141,24 @@ const SalesHistory = () => {
 
   return (
     <div style={{paddingBottom: 50}}>
-      <Card title={<Title level={3} style={{margin:0}}>Riwayat Penjualan</Title>}>
-        <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
+      <Card 
+        title={<Space><HistoryOutlined /> <Title level={4} style={{margin:0}}>Riwayat Penjualan</Title></Space>}
+        style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+      >
+        <Table 
+            dataSource={data} 
+            columns={columns} 
+            rowKey="id" 
+            loading={loading}
+            pagination={{ pageSize: 10 }} 
+            bordered
+            size="middle"
+        />
       </Card>
 
-      {/* Hidden Print Area */}
-      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+      {/* --- DIV PENGUMPET (TEMPAT NGE-RENDER KERTAS) --- */}
+      {/* Pake teknik overflow hidden biar gak keliatan user tapi kebaca printer */}
+      <div style={{ overflow: 'hidden', height: 0, width: 0 }}>
          <div ref={componentRef}>
             <ProfessionalInvoiceTemplate data={printData} />
          </div>
