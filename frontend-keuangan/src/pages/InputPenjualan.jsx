@@ -309,12 +309,8 @@ const InputPenjualan = () => {
         </div>
       </Modal>
 
-      <div style={{ display: 'none' }}>
-         {/* SOLUSI: Pasang ref di DIV pembungkus ini, bukan di komponennya */}
-         <div ref={componentRef}>
-            {/* Panggil template sebagai anak biasa */}
-            <ProfessionalInvoiceTemplate data={printData} />
-         </div>
+      <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
+         <ProfessionalInvoiceTemplate ref={componentRef} data={printData} />
       </div>
     </>
   );

@@ -1,4 +1,6 @@
 // File: src/components/ProfessionalInvoiceTemplate.jsx
+// (VERSI FIX: Pake forwardRef lagi biar kebaca sama react-to-print)
+
 import React from 'react';
 import { Typography, Row, Col, Table, Divider } from 'antd';
 import dayjs from 'dayjs';
@@ -10,11 +12,13 @@ const { Title, Text } = Typography;
 const formatRupiah = (value) => 
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-// HAPUS forwardRef, jadiin fungsi biasa
-export const ProfessionalInvoiceTemplate = ({ data }) => {
-  // 1. Safety Check: Kalau data kosong, return div kosong (JANGAN return null biar ref induk gak error)
+// KITA PAKE forwardRef LAGI (INI YANG DIBUTUHIN LIBRARYNYA)
+export const ProfessionalInvoiceTemplate = React.forwardRef(({ data }, ref) => {
+  
+  // Safety Check
   if (!data || !data.journal) {
-      return <div style={{ padding: 20 }}>Data belum siap dicetak...</div>;
+      // Return div kosong kalau data belum ada (biar ref tetep nempel)
+      return <div ref={ref}></div>;
   }
 
   const { journal, items } = data;
@@ -36,7 +40,7 @@ export const ProfessionalInvoiceTemplate = ({ data }) => {
 
   const styles = {
     page: {
-        padding: '40px', background: 'white', fontFamily: 'Helvetica, Arial, sans-serif', color: '#333', fontSize: '14px'
+        padding: '40px', background: 'white', fontFamily: 'Helvetica, Arial, sans-serif', color: '#333', fontSize: '14px', width: '210mm', minHeight: '297mm'
     },
     headerGray: {
         background: '#f8f9fa', padding: '15px 20px', borderRadius: '8px 8px 0 0', borderBottom: '2px solid #e9ecef'
@@ -101,8 +105,9 @@ export const ProfessionalInvoiceTemplate = ({ data }) => {
   ];
 
   return (
-    // Hapus ref={ref} di sini karena udah dipegang div pembungkus
-    <div style={styles.page}>
+    // TEMPEL REF DISINI (WAJIB)
+    <div ref={ref} style={styles.page}>
+      
       {/* HEADER */}
       <Row justify="space-between" align="top" style={{ marginBottom: 40 }}>
         <Col span={12}>
@@ -193,4 +198,4 @@ export const ProfessionalInvoiceTemplate = ({ data }) => {
       </Row>
     </div>
   );
-};
+});
