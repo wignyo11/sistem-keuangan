@@ -114,7 +114,7 @@ const InputPenjualan = () => {
         };
 
         // 3. Generate PDF Blob di Memori (Gak perlu render di layar)
-        const blob = await pdf(<ProfessionalInvoiceTemplate data={invoiceData} />).toBlob();
+        const blob = await pdf(<InvoicePDF data={invoiceData} />).toBlob();
         
         // 4. Buka di Tab Baru (User tinggal print dari browser)
         const url = URL.createObjectURL(blob);
