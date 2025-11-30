@@ -1,4 +1,6 @@
 // File: src/components/InvoicePDF.jsx
+// (VERSI FIX: PPN Turun ke Bawah & Tampilan Lebih Masuk Akal)
+
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
@@ -6,38 +8,77 @@ import 'dayjs/locale/id';
 
 dayjs.locale('id');
 
-// Format Rupiah
 const formatRupiah = (value) => 
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-// Style PDF
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#333' },
+  
+  // Header Section
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  companyTitle: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50' },
-  invoiceTitle: { fontSize: 24, fontWeight: 'light', textTransform: 'uppercase', textAlign: 'right' },
-  section: { margin: 10, padding: 10, flexGrow: 1 },
-  row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#eee', paddingVertical: 5 },
-  headerRow: { flexDirection: 'row', backgroundColor: '#2c3e50', color: 'white', padding: 5 },
-  cellDesc: { width: '50%' },
-  cellQty: { width: '10%', textAlign: 'center' },
-  cellPrice: { width: '20%', textAlign: 'right' },
-  cellTotal: { width: '20%', textAlign: 'right' },
-  totalSection: { marginTop: 20, alignItems: 'flex-end' },
+  companySection: { width: '60%' },
+  companyTitle: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4 },
+  companyAddress: { fontSize: 9, color: '#555', lineHeight: 1.4 },
+  
+  invoiceSection: { width: '40%', alignItems: 'flex-end' },
+  invoiceTitle: { fontSize: 24, fontWeight: 'light', textTransform: 'uppercase', color: '#2c3e50', marginBottom: 10 },
+  invoiceDetails: { flexDirection: 'row', marginBottom: 2 },
+  label: { width: 80, textAlign: 'right', paddingRight: 10, color: '#777', fontSize: 9 },
+  value: { width: 90, textAlign: 'right', fontWeight: 'bold', fontSize: 9 },
+
+  // Bill To
+  billTo: { marginTop: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  billToLabel: { fontSize: 8, color: '#aaa', textTransform: 'uppercase', marginBottom: 4 },
+  billToName: { fontSize: 12, fontWeight: 'bold', color: '#333' },
+
+  // Table
+  tableContainer: { marginTop: 20 },
+  tableHeader: { flexDirection: 'row', backgroundColor: '#2c3e50', color: 'white', padding: 6, alignItems: 'center' },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#eee', paddingVertical: 8, alignItems: 'center' },
+  
+  // Column Widths
+  colDesc: { width: '60%', paddingLeft: 5 },
+  colQty: { width: '10%', textAlign: 'center' }, // Kita keep dulu
+  colTotal: { width: '30%', textAlign: 'right', paddingRight: 5 },
+
+  // Totals
+  totalContainer: { marginTop: 10, alignItems: 'flex-end' },
   totalRow: { flexDirection: 'row', paddingVertical: 3 },
-  totalLabel: { width: 100, textAlign: 'right', paddingRight: 10, fontWeight: 'bold' },
-  totalValue: { width: 100, textAlign: 'right' },
+  totalLabelText: { width: 100, textAlign: 'right', paddingRight: 10, color: '#555' },
+  totalValueText: { width: 100, textAlign: 'right' },
+  grandTotalRow: { flexDirection: 'row', marginTop: 5, paddingTop: 5, borderTopWidth: 1, borderTopColor: '#333' },
+  grandTotalValue: { width: 100, textAlign: 'right', fontWeight: 'bold', fontSize: 12, color: '#2c3e50' },
+
+  // Footer
+  paymentBox: { marginTop: 30, padding: 10, backgroundColor: '#f9f9f9', borderRadius: 4 },
   footer: { position: 'absolute', bottom: 30, left: 0, right: 0, textAlign: 'center', fontSize: 8, color: '#aaa' }
 });
 
-// Komponen Dokumen PDF
 export const InvoicePDF = ({ data }) => {
   if (!data || !data.journal) return <Document><Page><Text>No Data</Text></Page></Document>;
 
   const { journal, items } = data;
-  const salesItems = items.filter(item => Number(item.credit) > 0);
-  const subTotal = salesItems.reduce((sum, item) => sum + Number(item.credit), 0);
-  const grandTotal = subTotal; // Tambah pajak disini kalo ada
+
+  // --- LOGIKA FILTERING (INI KUNCINYA) ---
+  // 1. Ambil semua item kredit (Pendapatan & PPN Keluaran)
+  const creditItems = items.filter(item => Number(item.credit) > 0);
+
+  // 2. Pisahkan PPN dari Barang
+  // Asumsi: Akun pajak pasti mengandung kata "PPN" atau "Pajak" di namanya
+  const taxItems = creditItems.filter(item => 
+    item.account_name.toLowerCase().includes('ppn') || 
+    item.account_name.toLowerCase().includes('pajak')
+  );
+
+  const productItems = creditItems.filter(item => 
+    !item.account_name.toLowerCase().includes('ppn') && 
+    !item.account_name.toLowerCase().includes('pajak')
+  );
+
+  // 3. Hitung Angka
+  const subTotal = productItems.reduce((sum, item) => sum + Number(item.credit), 0);
+  const totalTax = taxItems.reduce((sum, item) => sum + Number(item.credit), 0);
+  const grandTotal = subTotal + totalTax;
 
   return (
     <Document>
@@ -45,71 +86,80 @@ export const InvoicePDF = ({ data }) => {
         
         {/* HEADER */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.companySection}>
             <Text style={styles.companyTitle}>EQUILIB FARM</Text>
-            <Text>Jl. Agrikultur Modern No. 88</Text>
-            <Text>Jawa Tengah, Indonesia</Text>
-            <Text>Email: finance@equilib.com</Text>
+            <Text style={styles.companyAddress}>Jl. Agrikultur Modern No. 88</Text>
+            <Text style={styles.companyAddress}>Jawa Tengah, Indonesia</Text>
+            <Text style={styles.companyAddress}>Email: finance@equilib.com</Text>
           </View>
-          <View>
+          <View style={styles.invoiceSection}>
             <Text style={styles.invoiceTitle}>INVOICE</Text>
-            <Text>INV#{journal.id}</Text>
-            <Text>Tgl: {dayjs(journal.date).format('DD MMMM YYYY')}</Text>
+            <View style={styles.invoiceDetails}>
+              <Text style={styles.label}>No. Invoice:</Text>
+              <Text style={styles.value}>#{journal.id}</Text>
+            </View>
+            <View style={styles.invoiceDetails}>
+              <Text style={styles.label}>Tanggal:</Text>
+              <Text style={styles.value}>{dayjs(journal.date).format('DD MMM YYYY')}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={{ borderBottomWidth: 2, borderBottomColor: '#333', marginBottom: 20 }}></View>
-
-        {/* CUSTOMER INFO */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontWeight: 'bold', fontSize: 12 }}>Tagihan Kepada:</Text>
-          <Text style={{ fontSize: 14, marginVertical: 5 }}>{journal.contact_name || 'Pelanggan Tunai'}</Text>
+        {/* BILL TO */}
+        <View style={styles.billTo}>
+          <Text style={styles.billToLabel}>TAGIHAN KEPADA:</Text>
+          <Text style={styles.billToName}>{journal.contact_name || 'Pelanggan Tunai'}</Text>
         </View>
 
-        {/* TABEL HEADER */}
-        <View style={styles.headerRow}>
-          <Text style={styles.cellDesc}>DESKRIPSI</Text>
-          <Text style={styles.cellQty}>QTY</Text>
-          <Text style={styles.cellPrice}>HARGA</Text>
-          <Text style={styles.cellTotal}>JUMLAH</Text>
-        </View>
-
-        {/* TABEL BODY */}
-        {salesItems.map((item, index) => (
-          <View key={index} style={styles.row}>
-            <Text style={styles.cellDesc}>{item.account_name}</Text>
-            <Text style={styles.cellQty}>1</Text>
-            <Text style={styles.cellPrice}>{formatRupiah(item.credit)}</Text>
-            <Text style={styles.cellTotal}>{formatRupiah(item.credit)}</Text>
+        {/* TABLE */}
+        <View style={styles.tableContainer}>
+          {/* Table Header */}
+          <View style={styles.headerRow}>
+            <Text style={styles.colDesc}>DESKRIPSI BARANG</Text>
+            <Text style={styles.colQty}>QTY</Text>
+            <Text style={styles.colTotal}>JUMLAH</Text>
           </View>
-        ))}
 
-        {/* TOTALS */}
-        <View style={styles.totalSection}>
+          {/* Table Rows (Cuma Produk, PPN Gak Masuk Sini) */}
+          {productItems.map((item, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={styles.colDesc}>{item.account_name}</Text>
+              {/* Qty kita strip (-) karena di jurnal gak nyimpen qty */}
+              <Text style={styles.colQty}>-</Text> 
+              <Text style={styles.colTotal}>{formatRupiah(item.credit)}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* TOTALS SECTION */}
+        <View style={styles.totalContainer}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Subtotal:</Text>
-            <Text style={styles.totalValue}>{formatRupiah(subTotal)}</Text>
+            <Text style={styles.totalLabelText}>Subtotal:</Text>
+            <Text style={styles.totalValueText}>{formatRupiah(subTotal)}</Text>
           </View>
+          
+          {/* PPN Muncul Di Sini Sekarang */}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Pajak (0%):</Text>
-            <Text style={styles.totalValue}>{formatRupiah(0)}</Text>
+            <Text style={styles.totalLabelText}>PPN (11%):</Text>
+            <Text style={styles.totalValueText}>{formatRupiah(totalTax)}</Text>
           </View>
-          <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: '#ccc', paddingTop: 5 }]}>
-            <Text style={[styles.totalLabel, { fontSize: 14 }]}>TOTAL:</Text>
-            <Text style={[styles.totalValue, { fontSize: 14, fontWeight: 'bold' }]}>{formatRupiah(grandTotal)}</Text>
+
+          <View style={styles.grandTotalRow}>
+            <Text style={styles.totalLabelText}>TOTAL TAGIHAN:</Text>
+            <Text style={styles.grandTotalValue}>{formatRupiah(grandTotal)}</Text>
           </View>
         </View>
 
         {/* PAYMENT INFO */}
-        <View style={{ marginTop: 40, padding: 10, backgroundColor: '#f9f9f9', borderRadius: 5 }}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>Instruksi Pembayaran:</Text>
+        <View style={styles.paymentBox}>
+            <Text style={{ fontWeight: 'bold', fontSize: 9, marginBottom: 4 }}>Instruksi Pembayaran:</Text>
             <Text>BCA: 1234-5678-90 a/n Joko Susilo</Text>
             <Text>Mandiri: 0987-6543-21 a/n Joko Susilo</Text>
         </View>
 
         {/* FOOTER */}
         <Text style={styles.footer}>
-          Dokumen ini sah dan diproses oleh komputer. Terima kasih atas kepercayaan Anda.
+          Terima kasih telah berbisnis dengan Equilib Farm.
         </Text>
       </Page>
     </Document>
