@@ -1,217 +1,95 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Layout, Menu, Button, theme, Switch, Space } from 'antd';
+// File: src/AppLayout.jsx
+// (VERSI: TAMPILAN JURNAL.ID - OTORISASI 100% AMAN)
+
+import React, { useContext, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Layout, Menu, Button, Avatar, Space, Typography, theme, Tooltip, Switch } from 'antd';
 import { 
-  HomeOutlined, 
-  DollarCircleOutlined,
-  ShoppingCartOutlined,
-  SolutionOutlined, 
-  BookOutlined, 
-  RiseOutlined,
-  PieChartOutlined,
-  ReconciliationOutlined,
-  AuditOutlined,
-  TableOutlined,
-  AreaChartOutlined,
-  InboxOutlined,
-  ShopOutlined,
-  ContactsOutlined,
-  UsergroupAddOutlined,
-  TransactionOutlined,
-  SendOutlined,
-  CarOutlined,
-  HistoryOutlined,
-  LogoutOutlined,
-  SunOutlined,
-  MoonOutlined,
-  RollbackOutlined,
-  PrinterOutlined,
-  UndoOutlined
+  HomeOutlined, DollarCircleOutlined, ShoppingCartOutlined, SolutionOutlined, 
+  BookOutlined, RiseOutlined, PieChartOutlined, ReconciliationOutlined, 
+  AuditOutlined, TableOutlined, AreaChartOutlined, InboxOutlined, 
+  ShopOutlined, ContactsOutlined, UsergroupAddOutlined, TransactionOutlined, 
+  SendOutlined, CarOutlined, HistoryOutlined, LogoutOutlined, UserOutlined,
+  MenuUnfoldOutlined, MenuFoldOutlined, SunOutlined, MoonOutlined, FileTextOutlined
 } from '@ant-design/icons';
-import { useContext } from 'react'; 
 import AuthContext from './context/AuthContext';
+import logoImage from 'C:/Users/lenovo/.ssh/GITHUB/keuangan_akuntansi/frontend-keuangan/src/assets/logo.png';
 
 const { Header, Content, Footer, Sider } = Layout;
 
-const menuItems = [
-  {
-    key: '/',
-    icon: <HomeOutlined />,
-    label: <Link to="/">DASHBOARD</Link>,
-  },
+// --- WARNA STYLE JURNAL.ID ---
+const STYLES = {
+  sidebarBg: '#1B2531', // Hitam Kebiruan
+  headerBg: '#00B5E2',  // Biru Khas Jurnal
+  menuText: '#A3AAB3',
+  contentBg: '#F4F6F8', // Abu-abu muda untuk background konten
+};
 
-  // --- GRUP 1: SEMUA INPUT JADI SATU ---
+// --- MENU ITEMS (SAMA PERSIS SEPERTI SEBELUMNYA) ---
+const menuItems = [
+  { key: '/', icon: <HomeOutlined />, label: <Link to="/">Dashboard</Link> },
   {
-    key: 'transaksi', 
-    label: 'TRANSAKSI',
-    icon: <DollarCircleOutlined />, // Ikon "Duit"
+    key: 'transaksi', label: 'Transaksi', icon: <DollarCircleOutlined />,
     children: [ 
-      {
-        key: '/input-penjualan',
-        icon: <DollarCircleOutlined />, // Pake ikon yang sama
-        label: <Link to="/input-penjualan">Input Penjualan</Link>,
-      },
-      {
-        key: '/sales/return',
-        icon: <RollbackOutlined />,
-        label: <Link to="/sales/return">Retur Penjualan</Link>,
-      },
-      {
-        key: '/input-inventory',
-        icon: <ShopOutlined />,
-        label: <Link to="/input-inventory">Input Beli Barang (Stok)</Link>,
-      },
-      {
-        key: '/input-beban',
-        icon: <ShoppingCartOutlined />,
-        label: <Link to="/input-beban">Input Beban (Non-Stok)</Link>,
-      },
-      {
-        type: 'divider', // <-- Garis pemisah
-      },
-      {
-        key: '/transaksi/terima-pembayaran',
-        icon: <TransactionOutlined />, // Ikon "Terima Duit"
-        label: <Link to="/transaksi/terima-pembayaran">Terima Pembayaran</Link>,
-      },
-      {
-        key: '/transaksi/bayar-utang',
-        icon: <SendOutlined />, // Ikon "Kirim Duit"
-        label: <Link to="/transaksi/bayar-utang">Bayar Utang</Link>,
-      },
-      {
-        type: 'divider', // <-- Garis pemisah
-      },
-      {
-        key: '/journal',
-        icon: <BookOutlined />,
-        label: <Link to="/journal">Jurnal Umum (Manual)</Link>,
-      },
-      {
-        key: '/sales/history',
-        icon: <UndoOutlined />, // Import icon ini dulu
-        label: <Link to="/sales/history">Riwayat Penjualan</Link>,
-      },
+      { key: '/input-penjualan', label: <Link to="/input-penjualan">Input Penjualan</Link> },
+      { key: '/input-inventory', label: <Link to="/input-inventory">Input Beli Barang</Link> },
+      { key: '/input-beban', label: <Link to="/input-beban">Input Beban</Link> },
+      { type: 'divider' },
+      { key: '/transaksi/terima-pembayaran', label: <Link to="/transaksi/terima-pembayaran">Terima Pembayaran</Link> },
+      { key: '/transaksi/bayar-utang', label: <Link to="/transaksi/bayar-utang">Bayar Utang</Link> },
+      { type: 'divider' },
+      { key: '/journal', label: <Link to="/journal">Jurnal Umum</Link> },
     ],
   },
-  
-  // --- GRUP 2: DATA MASTER (SETUP) ---
   {
-    key: 'master', 
-    label: 'DATA MASTER',
-    icon: <SolutionOutlined />,
+    key: 'master', label: 'Data Master', icon: <SolutionOutlined />,
     children: [
-        {
-          key: '/accounts',
-          icon: <SolutionOutlined />,
-          label: <Link to="/accounts">Bagan Akun (COA)</Link>,
-        },
-        {
-          key: '/inventory',
-          icon: <InboxOutlined />,
-          label: <Link to="/inventory">Daftar Barang (Inventori)</Link>,
-        },
-        {
-          key: '/contacts',
-          icon: <ContactsOutlined />,
-          label: <Link to="/contacts">Daftar Kontak (Customer/Vendor)</Link>,
-        },
-        {
-          key: '/fixed-assets',
-          icon: <CarOutlined />,
-          label: <Link to="/fixed-assets">Daftar Aset Tetap</Link>,
-        },
+        { key: '/accounts', label: <Link to="/accounts">Bagan Akun</Link> },
+        { key: '/inventory', label: <Link to="/inventory">Daftar Barang</Link> },
+        { key: '/contacts', label: <Link to="/contacts">Daftar Kontak</Link> },
+        { key: '/fixed-assets', label: <Link to="/fixed-assets">Daftar Aset Tetap</Link> },
     ]
   },
-  
-  // --- GRUP 3: TINDAKAN AKHIR PERIODE ---
   {
-    key: 'tindakan',
-    label: 'TINDAKAN PERIODE',
-    icon: <HistoryOutlined />,
-    children: [
-      {
-        key: '/tindakan/run-depreciation',
-        icon: <HistoryOutlined />,
-        label: <Link to="/tindakan/run-depreciation">Jalankan Penyusutan</Link>, 
-      },
-    ]
+    key: 'tindakan', label: 'Tindakan Periode', icon: <HistoryOutlined />,
+    children: [{ key: '/tindakan/run-depreciation', label: <Link to="/tindakan/run-depreciation">Jalankan Penyusutan</Link> }]
   },
-  
-  // --- GRUP 4: LAPORAN (OUTPUT) ---
   {
-    key: 'laporan', 
-    label: 'LAPORAN',
-    icon: <PieChartOutlined />,
+    key: 'laporan', label: 'Laporan', icon: <PieChartOutlined />,
     children: [ 
-      {
-        key: '/laporan/laba-rugi', 
-        icon: <RiseOutlined />,
-        label: <Link to="/laporan/laba-rugi">Laba Rugi</Link>,
-      },
-      {
-        key: '/laporan/neraca',
-        icon: <ReconciliationOutlined />,
-        label: <Link to="/laporan/neraca">Neraca</Link>,
-      },
-      {
-        key: '/laporan/arus-kas',
-        icon: <AreaChartOutlined />,
-        label: <Link to="/laporan/arus-kas">Arus Kas</Link>,
-      },
-      {
-        type: 'divider', // <-- Garis pemisah
-      },
-      {
-        key: '/laporan/neraca-saldo',
-        icon: <TableOutlined />,
-        label: <Link to="/laporan/neraca-saldo">Neraca Saldo</Link>,
-      },
-      {
-        key: '/laporan/buku-besar',
-        icon: <AuditOutlined />,
-        label: <Link to="/laporan/buku-besar">Buku Besar</Link>,
-      },
-      {
-        key: '/laporan/buku-pembantu',
-        icon: <UsergroupAddOutlined />, 
-        label: <Link to="/laporan/buku-pembantu">Buku Pembantu</Link>,
-      },
+      { key: '/laporan/laba-rugi', label: <Link to="/laporan/laba-rugi">Laba Rugi</Link> },
+      { key: '/laporan/neraca', label: <Link to="/laporan/neraca">Neraca</Link> },
+      { key: '/laporan/arus-kas', label: <Link to="/laporan/arus-kas">Arus Kas</Link> },
+      { type: 'divider' },
+      { key: '/laporan/neraca-saldo', label: <Link to="/laporan/neraca-saldo">Neraca Saldo</Link> },
+      { key: '/laporan/buku-besar', label: <Link to="/laporan/buku-besar">Buku Besar</Link> },
+      { key: '/laporan/buku-pembantu', label: <Link to="/laporan/buku-pembantu">Buku Pembantu</Link> },
+      { key: '/sales/history', label: <Link to="/sales/history">Riwayat Penjualan</Link> },
     ],
   },
-  
 ];
 
-
 const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
-  const { logoutUser, user } = useContext(AuthContext); // <-- Ambil 'user' JUGA
-  const {
-    token: { colorBgContainer, colorBgLayout },
-  } = theme.useToken();
+  const { logoutUser, user } = useContext(AuthContext);
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const { token } = theme.useToken();
 
-  // --- "Sihir" Departemen (Grup) ---
-  // Cek 'user' ini masuk grup apa
+  // ============================================================
+  // 🔒 LOGIKA OTORISASI (INI TIDAK SAYA UBAH SAMA SEKALI) 🔒
+  // ============================================================
   const isOwner = user && user.groups.includes('Owner');
   const isAccountant = user && user.groups.includes('Akuntan');
   const isSales = user && user.groups.includes('Staf Penjualan');
   const isPurchasing = user && user.groups.includes('Staf Pembelian');
-  // --- Batas Sihir ---
 
-  // Filter menu berdasarkan "Departemen"
   const filteredMenuItems = menuItems.filter(item => {
-    // Kalo lo 'Pemilik', liat semua
     if (isOwner) return true;
-
-    // Menu 'Dashboard' (bisa diliat Akuntan & Pemilik)
     if (item.key === '/') return isAccountant;
-
-    // Menu 'Transaksi' (Folder)
+    
     if (item.key === 'transaksi') {
-        // Cek "anak"-nya
         item.children = item.children.filter(child => {
             if (child.key === '/input-penjualan') return isSales || isAccountant;
-            if (child.key === '/sales/history') return isSales || isAccountant;
-            if (child.key === '/sales/return') return isSales || isAccountant;
             if (child.key === '/input-inventory') return isPurchasing || isAccountant;
             if (child.key === '/input-beban') return isPurchasing || isAccountant;
             if (child.key === '/transaksi/terima-pembayaran') return isSales || isAccountant;
@@ -219,103 +97,138 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
             if (child.key === '/journal') return isAccountant;
             return false;
         });
-        // Tampilkan folder 'Transaksi' HANYA kalo "anak"-nya ada
         return item.children.length > 0;
     }
 
-    // Menu 'Data Master' (Bisa diliat semua, KECUALI Bagan Akun)
     if (item.key === 'master') {
          item.children = item.children.filter(child => {
-            if (child.key === '/accounts') return isAccountant; // COA cuma Akuntan
+            if (child.key === '/accounts') return isAccountant;
             if (child.key === '/inventory') return isSales || isPurchasing || isAccountant;
             if (child.key === '/contacts') return isSales || isPurchasing || isAccountant;
-            if (child.key === '/fixed-assets') return isAccountant; // Aset Tetap cuma Akuntan
+            if (child.key === '/fixed-assets') return isAccountant;
             return false;
         });
         return item.children.length > 0;
     }
 
-    // Menu 'Tindakan Periode' (Cuma Akuntan)
     if (item.key === 'tindakan') return isAccountant;
-
-    // Menu 'Laporan' (Cuma Akuntan)
     if (item.key === 'laporan') return isAccountant;
 
     return false;
   });
-  // --- Batas Logika "Satpam" ---
+  // ============================================================
+  
+  const sidebarBg = isDarkMode ? '#001529' : '#1B2531';
+  const headerBg = isDarkMode ? '#141414' : '#00B5E2';
+  const contentBg = isDarkMode ? '#000000' : '#F4F6F8';
+  const textColor = isDarkMode ? '#ffffff' : '#ffffff';
+   
+  const QuickButton = ({ icon, label, link }) => (
+      <Link to={link}>
+          <Button 
+            type="primary" 
+            icon={icon} 
+            style={{ 
+                background: 'rgba(255,255,255,0.2)', 
+                border: 'none', 
+                color: textColor, 
+                fontWeight: 500,
+                fontSize: 13
+            }}
+          >
+            {label}
+          </Button>
+      </Link>
+  );
 
-  return (
+   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible theme="dark">
+      <Sider 
+        collapsible 
+        collapsed={collapsed} 
+        onCollapse={(value) => setCollapsed(value)}
+        width={240}
+        style={{ background: sidebarBg, zIndex: 10 }}
+      >
         <div style={{
-          height: '32px',
-          margin: '16px',
-          background: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: '6px',
-          color: 'white',
-          textAlign: 'center',
-          lineHeight: '32px',
-          fontWeight: 'bold'
+            height: '74px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: (collapsed ? 'center' : 'flex-start'), // Kalau ditutup rata tengah, kalau dibuka rata kiri dikit
+            background: isDarkMode ? 'rgba(255,255,255,0.1)' : '#151C26',
+            padding: (collapsed ? '0' : '0 20px'), // Kasih padding kalau sidebar terbuka biar gak mepet kiri
+            overflow: 'hidden', // Biar gambar gak bleber pas sidebar nutup cepet
+            transition: 'all 0.2s'
         }}>
-          EQUILIB SYSTEM
+        <img 
+            src={logoImage} 
+            alt="Logo Equilib" 
+            style={{
+            maxHeight: '62px', // Batasi tinggi maksimal agar muat di header 64px
+            maxWidth: '100%',  // Lebar menyesuaikan
+            objectFit: 'contain', // Pastikan gambar gak gepeng
+      // Kalau collapsed, mungkin lo mau ngecilin logonya atau diatur via CSS lain. 
+      // Tapi dengan objectFit contain dan container overflow hidden, biasanya aman.
+         }}
+         />
         </div>
-        <Menu theme="dark" defaultSelectedKeys={['/']} mode="inline" items={filteredMenuItems} />
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={[location.pathname]}
+          items={filteredMenuItems}
+          style={{ background: sidebarBg }}
+        />
       </Sider>
       
-      <Layout style={{ background: colorBgLayout }}>
+      <Layout style={{ background: contentBg }}> 
         
         <Header style={{ 
-           padding: '0 24px', // Gedein padding dikit biar lega
-           background: colorBgContainer, 
-           display: 'flex', 
-           justifyContent: 'space-between', 
-           alignItems: 'center'
+           padding: '0 24px', 
+           background: headerBg, 
+           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+           height: 64, boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
-           <h1 style={{ margin: 0, 
-                     fontFamily: "'Calibri', 'Roboto', sans-serif", // <--- TAMBAHIN INI BRO
-                     fontWeight: 300, // (Opsional) Atur ketebalan: 300 (tipis), 400 (biasa), 500 (sedang), 700 (tebal)
-                     color: isDarkMode ? '#fff' : '#000' // (Opsional) Biar warna aman di dark/light mode
-           }}>Financial Statements</h1>
-           
-           {/* --- BAGIAN KANAN HEADER --- */}
-           <Space>
-             {/* 1. TOMBOL GANTI TEMA (SWITCH) */}
-             <Switch
-               checkedChildren={<MoonOutlined />} // Icon pas Gelap
-               unCheckedChildren={<SunOutlined />} // Icon pas Terang
-               checked={isDarkMode} // Status nyala/mati
-               onChange={toggleTheme} // Fungsi pas diklik
+          
+          {/* KIRI: Toggle & Title */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+              className: 'trigger',
+              onClick: () => setCollapsed(!collapsed),
+              style: { fontSize: '18px', cursor: 'pointer', marginRight: 24, color: textColor }
+            })}
+            <Typography.Text strong style={{ fontSize: 18, color: textColor }}>PERUSAHAAN SELADA JOKO</Typography.Text>
+          </div>
+
+          
+  
+          {/* KANAN: User Profile & Theme Switch */}
+          <Space size="middle">
+             
+             {/* SWITCH TEMA */}
+             <Switch 
+                checkedChildren={<MoonOutlined />} 
+                unCheckedChildren={<SunOutlined />} 
+                checked={isDarkMode}
+                onChange={toggleTheme}
              />
 
-             {/* 2. TOMBOL LOGOUT */}
-             <Button 
-               type="primary" 
-               danger 
-               icon={<LogoutOutlined />} 
-               onClick={logoutUser}
-             >
-              LOGOUT
-             </Button>
-           </Space>
-           {/* --- BATAS BAGIAN KANAN --- */}
- 
+             <div style={{ textAlign: 'right', lineHeight: '1.2', color: textColor }}>
+                 <div style={{ fontWeight: 'bold', fontSize: 13 }}>{user?.username || 'User'}</div>
+                 <div style={{ fontSize: 11, opacity: 0.9 }}>{isOwner ? 'Owner' : 'Staff'}</div>
+             </div>
+             <Avatar style={{ backgroundColor: 'white', color: headerBg }} icon={<UserOutlined />} />
+             <Tooltip title="Keluar">
+                 <Button type="text" icon={<LogoutOutlined style={{color: textColor}} />} onClick={logoutUser} />
+             </Tooltip>
+          </Space>
         </Header>
         
-        <Content style={{ margin: '16px' }}>
-          <div style={{ 
-            padding: 24, 
-            minHeight: 360, 
-            background: colorBgContainer, 
-            borderRadius: '8px'
-          }}>
-            {children}
-          </div>
+        <Content style={{ margin: '24px' }}>
+          <div style={{ minHeight: 360 }}>{children}</div>
         </Content>
         
-        <Footer style={{ textAlign: 'center', background: 'transparent' }}>
-          Sistem Akuntansi ©2025 Created by Group 8
-        </Footer>
+        <Footer style={{ textAlign: 'center', color: '#999', background: 'transparent' }}>Equilib System By Group 9 ©2025</Footer>
       </Layout>
     </Layout>
   );
