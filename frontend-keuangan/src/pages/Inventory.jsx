@@ -138,7 +138,9 @@ const Inventory = () => {
 
   // Tampilkan Halaman
   return (
-    <Card style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', borderRadius: '8px' }}>
+    <Card 
+      className="glass-card" 
+      style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', borderRadius: '8px' }}>
       {/* --- HEADER & TOMBOL --- */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <Title level={2} style={{ margin: 0 }}>Daftar Barang (Inventori)</Title>

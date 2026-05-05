@@ -60,10 +60,10 @@ const RunDepreciation = () => {
 
   return (
     <Card 
-                  // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+                  className="glass-card" 
                   title={
                     <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
-                      <HistoryOutlined style={{ marginRight: 8 }} /> Input Penerimaan Piutang
+                      <HistoryOutlined style={{ marginRight: 8 }} /> Penyusutan Aset Otomatis
                     </Title>
                   } 
                   style={{ 

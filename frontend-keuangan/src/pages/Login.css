@@ -1,0 +1,284 @@
+/* File: src/pages/Login.css (Versi Dark Corporate - MAX INTERACTIVE) */
+
+.futuristic-body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #0f1115;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- BACKGROUND ANIMATIONS --- */
+.grid-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.grid-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.3), transparent);
+    opacity: 0.5;
+    animation: pulse 2s ease-in-out infinite; /* Dibikin lebih cepat */
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.8; }
+}
+
+.shape {
+    position: absolute;
+    border: 2px solid rgba(0, 188, 212, 0.15); /* Garis lebih tebal */
+    animation: morph 8s ease-in-out infinite; /* Rotasi lebih cepat */
+}
+
+@keyframes morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(0deg) scale(1); }
+    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: rotate(90deg) scale(1.1); }
+    50% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: rotate(180deg) scale(0.9); }
+    75% { border-radius: 70% 30% 40% 60% / 40% 70% 60% 30%; transform: rotate(270deg) scale(1.05); }
+}
+
+/* --- LOGIN BOX --- */
+.login-container {
+    position: relative;
+    z-index: 10;
+    width: 400px;
+    background: rgba(24, 28, 36, 0.85); 
+    border: 1px solid rgba(0, 188, 212, 0.3);
+    border-radius: 12px;
+    padding: 40px;
+    padding-bottom: 50px;
+    box-shadow: 0 0 30px rgba(0, 188, 212, 0.15); /* Outer glow cyan */
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-container:hover {
+    box-shadow: 0 0 40px rgba(0, 188, 212, 0.25); /* Glow makin terang kalau disorot mouse */
+}
+
+/* --- HEADER & GLITCH TEXT --- */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.scan-line {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.8), transparent);
+    top: 0;
+    animation: scan 2.5s linear infinite;
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+}
+
+@keyframes scan {
+    0% { top: 0; opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.header h1 {
+    font-size: 30px;
+    color: #ffffff;
+    font-weight: bold;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 15px rgba(0, 188, 212, 0.6);
+    animation: glitch 4s infinite; /* EFEK GLITCH KEMBALI */
+}
+
+@keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); }
+    91% { transform: translate(-2px, 2px); color: #00bcd4; }
+    92% { transform: translate(2px, -2px); color: #ffffff; }
+    93% { transform: translate(-2px, -2px); color: #00bcd4; }
+    94% { transform: translate(2px, 2px); color: #ffffff; }
+}
+
+.status-text {
+    color: #00bcd4;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px rgba(0, 188, 212, 0.4);
+}
+
+.status-text::before {
+    content: '▶ ';
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* --- INPUT FIELDS INTERAKTIF --- */
+.form-group {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    color: #00bcd4;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-field {
+    width: 100%;
+    padding: 14px 15px 14px 40px;
+    background: rgba(15, 17, 21, 0.8);
+    border: 1px solid rgba(0, 188, 212, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animasi membal */
+    box-sizing: border-box;
+}
+
+/* Efek pop-up & glow pas diketik */
+.input-field:focus {
+    border-color: #00bcd4;
+    background: rgba(0, 188, 212, 0.05);
+    box-shadow: 0 8px 20px rgba(0, 188, 212, 0.2); 
+    transform: translateY(-3px); 
+}
+
+.input-field::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.field-icon {
+    position: absolute;
+    left: 14px;
+    color: #4a5568;
+    font-size: 15px;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Ikon ikut membesar dan nyala pas di-klik */
+.input-field:focus + .field-icon,
+.input-wrapper:focus-within .field-icon {
+    color: #00bcd4;
+    transform: scale(1.2);
+    text-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+}
+
+.toggle-icon {
+    position: absolute;
+    right: 14px;
+    color: #4a5568;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-icon:hover {
+    color: #00bcd4;
+    transform: scale(1.2);
+}
+
+/* --- BUTTON NEON LASER --- */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(26, 54, 93, 0.5));
+    border: 1px solid #00bcd4;
+    border-radius: 8px;
+    color: #00bcd4;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.5), transparent);
+    transition: left 0.5s ease;
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(26, 54, 93, 0.8));
+    color: #ffffff;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 188, 212, 0.5); /* Nyala terang pas disorot */
+}
+
+/* --- ORNAMEN --- */
+.corner-decoration {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #00bcd4;
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+}
+.corner-decoration.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.corner-decoration.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.corner-decoration.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.corner-decoration.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.footer-credit {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 100%;
+}
+
+.footer-credit p {
+    color: rgba(0, 188, 212, 0.5);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    animation: fadeGlow 3s ease-in-out infinite;
+}
+
+@keyframes fadeGlow {
+    0%, 100% { opacity: 0.5; text-shadow: 0 0 5px rgba(0, 188, 212, 0.2); }
+    50% { opacity: 1; text-shadow: 0 0 15px rgba(0, 188, 212, 0.8); }
+}

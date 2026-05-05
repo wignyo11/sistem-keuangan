@@ -733,154 +733,147 @@ class CreateSalesReturnView(APIView):
     
 # accounting/views.py (UPDATE BAGIAN INI SAJA)
 
+# accounting/views.py (GANTI CLASS DashboardSummaryView DENGAN INI)
+
 class DashboardSummaryView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant]
     """
-    API Dashboard Sultan: Mengirim data KPI, Grafik Tren, Ranking, Pie Chart, dan Aktivitas.
+    API Dashboard FIX: Menggunakan Logika 'Sapu Jagat' untuk Akun Kas
     """
 
     def get(self, request, *args, **kwargs):
+        # 1. SETUP TANGGAL (PENTING: Pastikan laptop di 2025 sesuai data kamu)
         today = date.today()
+        # Jika data kamu di Des 2025 tapi hari ini masih 2024, aktifkan baris bawah ini:
+        # today = date(2025, 12, 31) 
+        
         start_of_month = today.replace(day=1)
         
-        # --- 1. DATA KPI (KARTU ATAS) ---
+        # --- 2. SOLUSI ANTI-GHOSTING: CARI AKUN KAS LEBIH AGRESIF ---
+        # Kita cari akun yang Tipernya 'ASET' DAN Namanya mengandung 'Kas' atau 'Bank'
+        # Atau Nomornya berawalan '1-10'
+        # Ini akan menangkap "Kas di Tangan", "Bank BCA", "Kas Kecil", dll.
+        
+        cash_accounts = Account.objects.filter(
+            Q(number__startswith='1-10') | 
+            Q(name__icontains='Kas') | 
+            Q(name__icontains='Bank')
+        ).filter(type='ASET') # Pastikan tipenya ASET biar aman
+        
+        # Ambil ID-nya saja biar query enteng
+        cash_account_ids = list(cash_accounts.values_list('id', flat=True))
+        
+        print(f"\n🔥 [DEBUG] Mencari Akun Kas/Bank...")
+        print(f"🔥 [DEBUG] Ditemukan {len(cash_account_ids)} akun: {list(cash_accounts.values_list('name', flat=True))}")
+        
+        # --- 3. DATA KPI ---
         items_up_to_today = JournalItem.objects.filter(journal_entry__date__lte=today)
         items_this_month = JournalItem.objects.filter(journal_entry__date__gte=start_of_month)
 
         try:
-            # Hitung Saldo Kas (Semua akun 1-10xxxx)
-            akun_kas_list = Account.objects.filter(number__startswith='1-10')
-            total_kas = sum(self.get_single_balance(items_up_to_today, acc) for acc in akun_kas_list)
+            # Hitung Saldo Kas Total
+            total_kas = 0
+            if cash_account_ids:
+                kas_data = items_up_to_today.filter(account_id__in=cash_account_ids).aggregate(d=Sum('debit'), c=Sum('credit'))
+                total_kas = (kas_data['d'] or 0) - (kas_data['c'] or 0)
 
-            # Hitung Piutang & Utang
-            akun_piutang = Account.objects.filter(number__startswith='1-11').first()
-            total_piutang = self.get_single_balance(items_up_to_today, akun_piutang) if akun_piutang else 0
+            # Hitung Piutang & Utang (Cari by Type/Name lebih aman)
+            piutang_ids = list(Account.objects.filter(name__icontains='Piutang').values_list('id', flat=True))
+            utang_ids = list(Account.objects.filter(name__icontains='Utang').values_list('id', flat=True))
 
-            akun_utang = Account.objects.filter(number__startswith='2-10').first()
-            total_utang = self.get_single_balance(items_up_to_today, akun_utang) if akun_utang else 0
+            total_piutang = 0
+            if piutang_ids:
+                piutang_data = items_up_to_today.filter(account_id__in=piutang_ids).aggregate(d=Sum('debit'), c=Sum('credit'))
+                total_piutang = (piutang_data['d'] or 0) - (piutang_data['c'] or 0)
 
-            # Hitung Laba Rugi Bulan Ini
-            # Pendapatan
+            total_utang = 0
+            if utang_ids:
+                utang_data = items_up_to_today.filter(account_id__in=utang_ids).aggregate(c=Sum('credit'), d=Sum('debit'))
+                total_utang = (utang_data['c'] or 0) - (utang_data['d'] or 0)
+
+            # Laba Rugi
             rev_data = items_this_month.filter(account__type='PENDAPATAN').aggregate(c=Sum('credit'), d=Sum('debit'))
             rev_month = (rev_data['c'] or 0) - (rev_data['d'] or 0)
             
-            # Beban (Termasuk BEBAN_OPERASIONAL yang baru)
             exp_data = items_this_month.filter(
-                Q(account__type='BEBAN') | 
-                Q(account__type='BEBAN_OPERASIONAL') | 
-                Q(account__type='BEBAN_LAIN')
+                Q(account__type='BEBAN') | Q(account__type='BEBAN_OPERASIONAL') | Q(account__type='BEBAN_LAIN')
             ).aggregate(d=Sum('debit'), c=Sum('credit'))
             exp_month = (exp_data['d'] or 0) - (exp_data['c'] or 0)
             
             laba_bersih = rev_month - exp_month
 
         except Exception as e:
-            print(f"Error KPI: {e}") # Debugging
+            print(f"Error KPI: {e}")
             total_kas = 0; total_piutang = 0; total_utang = 0; rev_month = 0; laba_bersih = 0
 
-        # --- 2. GRAFIK TREN (6 BULAN TERAKHIR) ---
+        # --- 4. GRAFIK TREN (6 BULAN) ---
         trend_data = []
-        start_trend = today - relativedelta(months=5) # Mundur 5 bulan
+        start_trend = today - relativedelta(months=5)
         
         for i in range(6):
             curr = start_trend + relativedelta(months=i)
-            ms = curr.replace(day=1) # Awal bulan
-            me = ms + relativedelta(months=1) - relativedelta(days=1) # Akhir bulan
+            ms = curr.replace(day=1)
+            me = ms + relativedelta(months=1) - relativedelta(days=1)
             
-            # Ambil jurnal di bulan tersebut
             items_m = JournalItem.objects.filter(journal_entry__date__range=[ms, me])
             
-            # Hitung Pendapatan
+            # Profit
             r = items_m.filter(account__type='PENDAPATAN').aggregate(c=Sum('credit'), d=Sum('debit'))
             val_rev = (r['c'] or 0) - (r['d'] or 0)
             
-            # Hitung Beban (Total semua tipe beban)
-            e = items_m.filter(
-                account__type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']
-            ).aggregate(d=Sum('debit'), c=Sum('credit'))
+            e = items_m.filter(account__type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']).aggregate(d=Sum('debit'), c=Sum('credit'))
             val_exp = (e['d'] or 0) - (e['c'] or 0)
+
+            # Cash Flow
+            val_inflow = 0
+            val_outflow = 0
             
+            if cash_account_ids:
+                inflow_data = items_m.filter(account_id__in=cash_account_ids).aggregate(d=Sum('debit'))
+                val_inflow = inflow_data['d'] or 0  # <--- INI YG DIBACA FRONTEND "cash_in"
+
+                outflow_data = items_m.filter(account_id__in=cash_account_ids).aggregate(c=Sum('credit'))
+                val_outflow = outflow_data['c'] or 0 # <--- INI YG DIBACA FRONTEND "cash_out"
+
             trend_data.append({
-                "name": ms.strftime('%b'), # Nama Bulan (Jan, Feb...)
+                "name": ms.strftime('%b'),
                 "pendapatan": val_rev,
                 "beban": val_exp,
-                "laba": val_rev - val_exp
+                "laba": val_rev - val_exp,
+                "cash_in": val_inflow, 
+                "cash_out": val_outflow,
+                "cash_net": val_inflow - val_outflow
             })
 
-        # --- 3. RANKING PRODUK TERLARIS (Top 5) ---
-        # Ambil dari log inventori tipe 'JUAL'
+        # --- 5. DATA LAINNYA ---
         top_products = InventoryLog.objects.filter(transaction_type='JUAL')\
-            .values('item__name')\
-            .annotate(
-                total_qty=Sum('quantity'), 
-                total_hpp=Sum('total_cost') # Estimasi nilai (HPP)
-            ).order_by('-total_qty')[:5]
+            .values('item__name').annotate(total_qty=Sum('quantity'), total_hpp=Sum('total_cost')).order_by('-total_qty')[:5]
+        ranking_list = [{"name": p['item__name'], "quantity_sold": p['total_qty'], "estimasi_nilai": p['total_hpp']} for p in top_products]
 
-        ranking_list = []
-        for p in top_products:
-            ranking_list.append({
-                "name": p['item__name'],
-                "quantity_sold": p['total_qty'],
-                "estimasi_nilai": p['total_hpp']
-            })
-
-        # --- 4. PIE CHART BEBAN (Top 5) ---
         expense_comp = []
-        # Ambil semua akun beban
-        beban_accs = Account.objects.filter(
-            type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN']
-        )
+        beban_accs = Account.objects.filter(type__in=['BEBAN', 'BEBAN_OPERASIONAL', 'BEBAN_LAIN'])
         for acc in beban_accs:
-            # Hitung saldo beban bulan ini
-            bal = self.get_single_balance(items_this_month, acc)
-            if bal > 0: 
-                expense_comp.append({"name": acc.name, "value": bal})
-        
-        # Urutkan dari yg terbesar, ambil 5 teratas
+            bal_data = items_this_month.filter(account=acc).aggregate(d=Sum('debit'), c=Sum('credit'))
+            bal = (bal_data['d'] or 0) - (bal_data['c'] or 0)
+            if bal > 0: expense_comp.append({"name": acc.name, "value": bal})
         expense_comp.sort(key=lambda x: x['value'], reverse=True)
         final_pie = expense_comp[:5]
 
-        # --- 5. AKTIVITAS TERAKHIR (List Log) ---
-        # Ambil 5 jurnal terakhir yang dibuat
         recent_entries = JournalEntry.objects.all().order_by('-created_at')[:5]
         recent_list = []
         for entry in recent_entries:
-            # Hitung total nominal transaksi (ambil dari sisi Debit)
             total_val = entry.items.filter(debit__gt=0).aggregate(Sum('debit'))['debit__sum'] or 0
-            
-            # Cek nama kontak (Anti-Crash kalau None)
             contact_name = entry.contact.name if entry.contact else "Internal / Penyesuaian"
+            recent_list.append({"id": entry.id, "date": entry.date, "description": entry.description, "total": total_val, "contact": contact_name})
 
-            recent_list.append({
-                "id": entry.id,
-                "date": entry.date,
-                "description": entry.description,
-                "total": total_val,
-                "contact": contact_name
-            })
-
-        # --- FINAL: BUNGKUS KE JSON ---
         return Response({
-            "kpi": {
-                "kas": total_kas, 
-                "piutang": total_piutang, 
-                "utang": total_utang, 
-                "laba_bersih": laba_bersih,
-                "pendapatan": rev_month
-            },
+            "PESAN_RAHASIA": "HALO BRO, INI KODE BARU YANG BENAR!!!",
+            "kpi": {"kas": total_kas, "piutang": total_piutang, "utang": total_utang, "laba_bersih": laba_bersih, "pendapatan": rev_month},
             "trend_chart": trend_data,
             "ranking": ranking_list, 
             "pie_chart": final_pie,
             "recent_activity": recent_list
         })
-
-    # --- HELPER METHOD (Harus di dalam Class, sejajar dengan def get) ---
-    def get_single_balance(self, queryset, account):
-        res = queryset.filter(account=account).aggregate(c=Sum('credit'), d=Sum('debit'))
-        if account.normal_balance == 'KREDIT':
-            return (res['c'] or 0) - (res['d'] or 0)
-        else:
-            return (res['d'] or 0) - (res['c'] or 0)
     
 class CashFlowStatementView(APIView):
     permission_classes = [IsAuthenticated, IsOwner | IsAccountant]

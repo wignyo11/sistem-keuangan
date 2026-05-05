@@ -114,4 +114,4 @@ Database: Terhubung ke PostgreSQL Railway via dj_database_url.
 
 Security: Menggunakan CSRF_TRUSTED_ORIGINS dan SSL Redirect untuk keamanan produksi.
 
-Copyright © 2025 Group 8 - Equilib System
+Copyright © 2025 Atmaja - Equilib System

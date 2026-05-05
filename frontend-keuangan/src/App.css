@@ -1,0 +1,28 @@
+/* Efek Glassmorphism untuk Card Ant Design */
+.glass-card {
+    /* Warna dasar gelap tapi transparan (opacity 0.6) */
+    background: rgba(24, 28, 36, 0.6) !important; 
+    
+    /* INI KUNCI EFEK BLUR-NYA */
+    backdrop-filter: blur(16px) !important; 
+    -webkit-backdrop-filter: blur(16px) !important; /* Biar jalan di browser Safari */
+    
+    /* Pinggiran tipis biar persis kayak potongan kaca */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+    
+    /* Bayangan lembut buat kedalaman */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important; 
+    border-radius: 12px !important;
+}
+
+/* Bikin header card Ant Design jadi transparan juga */
+.glass-card .ant-card-head {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+/* Bikin teks di dalam card jadi warna terang (opsional) */
+.glass-card .ant-card-body {
+    color: #e2e8f0 !important;
+}

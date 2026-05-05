@@ -186,7 +186,7 @@ const JournalEntryModal = ({ open, onClose, onSubmitSuccess, accounts }) => {
         </Form.List>
         
         {/* Baris 3: Total & Status Keseimbangan */}
-        <Row justify="end" style={{ background: '#f0f2f5', padding: '16px' }}>
+        <Row justify="end" style={{ background: '#32588d8e', padding: '16px' }}>
           <Col span={8}>
             <Text strong>Total Debit: </Text>
             <Text>{new Intl.NumberFormat('id-ID').format(totalDebit)}</Text>

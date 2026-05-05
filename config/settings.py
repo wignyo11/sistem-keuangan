@@ -158,13 +158,15 @@ SIMPLE_JWT = {
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # 2. Paksa SSL (HTTPS)
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
-# 3. Percaya sama Domain Railway (Pastikan link-nya BENAR persis punya lo)
+# 3. Percaya sama Domain Railway & Localhost
 CSRF_TRUSTED_ORIGINS = [
     'https://equilib-system-atma.up.railway.app', 
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
 ]
 
 # 4. (Opsional) Izinkan CORS Headers biar gak rewel

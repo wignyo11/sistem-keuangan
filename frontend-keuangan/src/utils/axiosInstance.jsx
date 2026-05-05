@@ -2,10 +2,8 @@
 import axios from 'axios';
 import { applyAuthTokenInterceptor } from 'axios-jwt';
 
-// --- PERBAIKAN: LANGSUNG TEMBAK RAILWAY ---
-// Ganti link di bawah ini dengan Link Railway lo yang asli (jangan sampe salah ketik/spasi)
-// Contoh: 'https://equilib-system-atma.up.railway.app'
-const BASE_URL = 'https://equilib-system-atma.up.railway.app'; 
+
+const BASE_URL = 'http://127.0.0.1:8000'; 
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,

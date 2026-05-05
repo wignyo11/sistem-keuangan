@@ -144,7 +144,8 @@ const InputPenjualan = () => {
 
   return (
     <>
-      <Card 
+      <Card     
+                 className="glass-card" 
                 // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
                 title={
                   <Title level={3} style={{ margin: 0, fontSize: '20px' }}>

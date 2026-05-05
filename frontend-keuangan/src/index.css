@@ -1,6 +1,16 @@
 /* 1. IMPORT ROBOTO DARI GOOGLE FONTS */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
+body {
+    /* Panggil foto dari folder public pakai awalan '/' */
+    background-image: url('/bg.jpeg'); 
+    
+    /* Settingan wajib biar fotonya tampil cakep */
+    background-size: cover; /* Fotonya bakal ditarik nutupin layar penuh */
+    background-position: center; /* Posisinya selalu di tengah */
+    background-repeat: no-repeat; /* Biar fotonya nggak jadi banyak kayak keramik */
+    background-attachment: fixed; /* KUNCI PENTING: Biar fotonya diem pas halaman di-scroll */
+}
 /* 2. TERAPKAN KE BODY */
 body {
   margin: 0;
@@ -14,4 +24,25 @@ body {
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Bikin pembungkus utama React jadi transparan */
+#root {
+    background: transparent !important;
+}
+
+/* Bikin Layout utama Ant Design jadi transparan */
+.ant-layout {
+    background: transparent !important;
+}
+
+/* Bikin area konten di tengah (tempat card lu berada) jadi transparan */
+.ant-layout-content {
+    background: transparent !important;
+}
+
+/* (Opsional) Kalau lu mau Header atasnya sekalian tembus pandang sedikit */
+.ant-layout-header {
+    background: rgba(24, 28, 36, 0.7) !important;
+    backdrop-filter: blur(10px);
 }

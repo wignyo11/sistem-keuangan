@@ -1,11 +1,11 @@
 // File: src/context/AuthContext.jsx
-// (VERSI FINAL: ANTI-RACE CONDITION)
+// (VERSI FIX: Clean Console & Anti-Warning)
 
 import { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import { Spin } from 'antd'; // Kita butuh spinner loading
+import { Spin } from 'antd';
 
 const AuthContext = createContext();
 
@@ -13,7 +13,6 @@ export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
     
-    // 1. Ambil data dari LocalStorage SEBELUM render apapun
     const [authTokens, setAuthTokens] = useState(() => {
         const storedTokens = localStorage.getItem('authTokens');
         return storedTokens ? JSON.parse(storedTokens) : null;
@@ -24,23 +23,18 @@ export const AuthProvider = ({ children }) => {
         return storedTokens ? jwtDecode(storedTokens) : null;
     });
 
-    // State buat nahan render (PENTING!)
     const [appReady, setAppReady] = useState(false); 
     const [loading, setLoading] = useState(false);
     
     const navigate = useNavigate();
 
-    // 2. EFEK PERTAMA KALI LOAD (INISIALISASI)
     useEffect(() => {
         if (authTokens) {
-            // TEMPEL TOKEN DULU KE AXIOS
             axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + authTokens.access;
         }
-        // Baru bilang aplikasi siap
         setAppReady(true);
-    }, []); // Cuma jalan sekali pas refresh
+    }, []); 
 
-    // 3. Login Logic
     const loginUser = async (username, password) => {
         setLoading(true);
         try {
@@ -53,10 +47,7 @@ export const AuthProvider = ({ children }) => {
                 setAuthTokens(data);
                 setUser(jwtDecode(data.access));
                 localStorage.setItem('authTokens', JSON.stringify(data));
-                
-                // Tempel token langsung
                 axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;
-                
                 navigate('/');
             } else {
                 alert('Ada yang salah!');
@@ -69,7 +60,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // 4. Logout Logic
     const logoutUser = () => {
         setAuthTokens(null);
         setUser(null);
@@ -85,13 +75,12 @@ export const AuthProvider = ({ children }) => {
         logoutUser,
     };
 
-    // 5. TAHAN RENDER SAMPAI SIAP
-    // Ini kuncinya. Kalau belum siap, tampilin loading putih doang.
-    // Jangan biarin Dashboard ngerender duluan.
     if (!appReady) {
         return (
-            <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Spin size="large" tip="Menyiapkan Data..." />
+            <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 20 }}>
+                {/* FIX: Spin gak pake 'tip' di sini, teksnya kita taruh manual di bawah biar rapi */}
+                <Spin size="large" />
+                <span style={{ color: '#1890ff', fontWeight: 500 }}>Menyiapkan Data...</span>
             </div>
         );
     }

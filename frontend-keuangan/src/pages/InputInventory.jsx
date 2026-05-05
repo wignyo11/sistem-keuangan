@@ -98,7 +98,7 @@ const InputInventory = () => {
 
   return (
     <Card 
-          // Judul sekarang warnanya ngikut tema (token.colorText), bukan merah lagi
+          className="glass-card" 
           title={
             <Title level={3} style={{ margin: 0, fontSize: '20px' }}>
               <ShopOutlined style={{ marginRight: 8 }} /> Input Pembelian Barang (Stok Masuk)

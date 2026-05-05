@@ -197,7 +197,7 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
               onClick: () => setCollapsed(!collapsed),
               style: { fontSize: '18px', cursor: 'pointer', marginRight: 24, color: textColor }
             })}
-            <Typography.Text strong style={{ fontSize: 18, color: textColor }}>PERUSAHAAN SELADA JOKO</Typography.Text>
+            <Typography.Text strong style={{ fontSize: 18, color: '#ffffff' }}>PT. ARTO SUKSES SELADA AGREE KALCER JAYA ABADI</Typography.Text>
           </div>
 
           
@@ -228,7 +228,7 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
           <div style={{ minHeight: 360 }}>{children}</div>
         </Content>
         
-        <Footer style={{ textAlign: 'center', color: '#999', background: 'transparent' }}>Equilib System By Group 9 ©2025</Footer>
+        <Footer style={{ textAlign: 'center', color: '#999', background: 'transparent' }}>Equilib System By Atmaja ©2025</Footer>
       </Layout>
     </Layout>
   );
