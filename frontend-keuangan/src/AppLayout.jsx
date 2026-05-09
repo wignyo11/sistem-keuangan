@@ -13,7 +13,7 @@ import {
   MenuUnfoldOutlined, MenuFoldOutlined, SunOutlined, MoonOutlined, FileTextOutlined
 } from '@ant-design/icons';
 import AuthContext from './context/AuthContext';
-import logoImage from 'C:/Users/lenovo/.ssh/GITHUB/keuangan_akuntansi/frontend-keuangan/src/assets/logo.png';
+import logoImage from 'C:/Users/lenovo/.ssh/keuangan_akuntansi/frontend-keuangan/public/logo.png';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -74,10 +74,6 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { token } = theme.useToken();
-
-  // ============================================================
-  // 🔒 LOGIKA OTORISASI (INI TIDAK SAYA UBAH SAMA SEKALI) 🔒
-  // ============================================================
   const isOwner = user && user.groups.includes('Owner');
   const isAccountant = user && user.groups.includes('Akuntan');
   const isSales = user && user.groups.includes('Staf Penjualan');
@@ -154,24 +150,45 @@ const AppLayout = ({ children, isDarkMode, toggleTheme }) => {
             height: '74px', 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: (collapsed ? 'center' : 'flex-start'), // Kalau ditutup rata tengah, kalau dibuka rata kiri dikit
+            justifyContent: collapsed ? 'center' : 'flex-start',
             background: isDarkMode ? 'rgba(255,255,255,0.1)' : '#151C26',
-            padding: (collapsed ? '0' : '0 20px'), // Kasih padding kalau sidebar terbuka biar gak mepet kiri
-            overflow: 'hidden', // Biar gambar gak bleber pas sidebar nutup cepet
-            transition: 'all 0.2s'
+            padding: collapsed ? '0' : '0 20px',
+            overflow: 'hidden', 
+            transition: 'all 0.2s',
+            gap: '12px' // Memberikan jarak antara icon daun dan teks ASAKJA
         }}>
-        <img 
-            src={logoImage} 
-            alt="Logo Equilib" 
-            style={{
-            maxHeight: '62px', // Batasi tinggi maksimal agar muat di header 64px
-            maxWidth: '100%',  // Lebar menyesuaikan
-            objectFit: 'contain', // Pastikan gambar gak gepeng
-      // Kalau collapsed, mungkin lo mau ngecilin logonya atau diatur via CSS lain. 
-      // Tapi dengan objectFit contain dan container overflow hidden, biasanya aman.
-         }}
-         />
-        </div>
+            {/* ICON DAUN */}
+            <img 
+                src={logoImage} // Pastikan file ini sekarang HANYA ICON DAUN
+                alt="Icon Equilib" 
+                style={{
+                    height: '60px', // Sesuaikan ukuran icon
+                    width: 'auto',
+                    objectFit: 'contain',
+                    transition: 'all 0.2s'
+                }}
+            />
+            
+            {/* TEKS ASAKJA (Hanya muncul saat sidebar dilebarkan) */}
+            {!collapsed && (
+                <span style={{
+                    fontFamily: "'Syncopate', sans-serif", // Memanggil font baru
+                    background: 'linear-gradient(to right, #d6ff1d, #0eff1a)', 
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    color: 'transparent',
+                    fontWeight: '700', 
+                    fontSize: '22px',
+                    letterSpacing: '2px', 
+                    whiteSpace: 'nowrap',
+                    transition: 'opacity 0.2s',
+                    display: 'inline-block' 
+                }}>
+                    EQUILIB
+                </span>
+            )}
+         </div>
         <Menu
           theme="dark"
           mode="inline"

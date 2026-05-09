@@ -1,284 +1,507 @@
-/* File: src/pages/Login.css (Versi Dark Corporate - MAX INTERACTIVE) */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-.futuristic-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #0f1115;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
-    position: relative;
-    margin: 0;
-    padding: 0;
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #1a1a2e;
+  overflow: hidden;
+  height: 100vh;
 }
 
-/* --- BACKGROUND ANIMATIONS --- */
-.grid-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    perspective: 1000px;
-    overflow: hidden;
-    z-index: 1;
+/* ============ LOGIN PAGE ============ */
+#login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
 }
 
-.grid-line {
-    position: absolute;
-    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.3), transparent);
-    opacity: 0.5;
-    animation: pulse 2s ease-in-out infinite; /* Dibikin lebih cepat */
+/* Left Panel */
+.left-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #defa10 0%, #00cf26 50%, #b6b6b6 100%);
+  padding: 40px 48px;
+  overflow: hidden;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.8; }
+.left-panel .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 10;
+  position: relative;
 }
 
-.shape {
-    position: absolute;
-    border: 2px solid rgba(0, 188, 212, 0.15); /* Garis lebih tebal */
-    animation: morph 8s ease-in-out infinite; /* Rotasi lebih cepat */
+.left-panel .logo img.custom-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain; 
+  background: rgba(13, 13, 13, 0.821);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  border-radius: 6px;
 }
 
-@keyframes morph {
-    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(0deg) scale(1); }
-    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: rotate(90deg) scale(1.1); }
-    50% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: rotate(180deg) scale(0.9); }
-    75% { border-radius: 70% 30% 40% 60% / 40% 70% 60% 30%; transform: rotate(270deg) scale(1.05); }
+.characters-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 420px;
 }
 
-/* --- LOGIN BOX --- */
-.login-container {
-    position: relative;
-    z-index: 10;
-    width: 400px;
-    background: rgba(24, 28, 36, 0.85); 
-    border: 1px solid rgba(0, 188, 212, 0.3);
-    border-radius: 12px;
-    padding: 40px;
-    padding-bottom: 50px;
-    box-shadow: 0 0 30px rgba(0, 188, 212, 0.15); /* Outer glow cyan */
-    backdrop-filter: blur(12px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.left-panel .footer-links {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  color: rgba(0, 188, 125, 0.7);
+  z-index: 10;
+  position: relative;
 }
 
-.login-container:hover {
-    box-shadow: 0 0 40px rgba(0, 188, 212, 0.25); /* Glow makin terang kalau disorot mouse */
+.left-panel .footer-links a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
-/* --- HEADER & GLITCH TEXT --- */
-.header {
-    text-align: center;
-    margin-bottom: 30px;
-    position: relative;
+.left-panel .footer-links a:hover { color: #009a80; }
+
+/* Decorative blurs */
+.left-panel::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: 15%;
+  width: 260px;
+  height: 260px;
+  background: rgba(0, 188, 125, 0.7);
+  border-radius: 50%;
+  filter: blur(80px);
 }
 
-.scan-line {
-    position: absolute;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.8), transparent);
-    top: 0;
-    animation: scan 2.5s linear infinite;
-    box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+.left-panel::before {
+  content: '';
+  position: absolute;
+  bottom: 15%;
+  left: 10%;
+  width: 350px;
+  height: 350px;
+  background: rgba(0, 188, 125, 0.7);
+  border-radius: 50%;
+  filter: blur(100px);
 }
 
-@keyframes scan {
-    0% { top: 0; opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+/* Right Panel */
+.right-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 40px;
 }
 
-.header h1 {
-    font-size: 30px;
-    color: #ffffff;
-    font-weight: bold;
-    letter-spacing: 4px;
-    margin-bottom: 8px;
-    text-shadow: 0 0 15px rgba(0, 188, 212, 0.6);
-    animation: glitch 4s infinite; /* EFEK GLITCH KEMBALI */
+.form-container {
+  width: 100%;
+  max-width: 400px;
 }
 
-@keyframes glitch {
-    0%, 90%, 100% { transform: translate(0); }
-    91% { transform: translate(-2px, 2px); color: #00bcd4; }
-    92% { transform: translate(2px, -2px); color: #ffffff; }
-    93% { transform: translate(-2px, -2px); color: #00bcd4; }
-    94% { transform: translate(2px, 2px); color: #ffffff; }
+/* Sparkle icon */
+.sparkle-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
 }
 
-.status-text {
-    color: #00bcd4;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin: 0;
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 5px rgba(0, 188, 212, 0.4);
+.sparkle-icon svg {
+  width: 32px;
+  height: 32px;
 }
 
-.status-text::before {
-    content: '▶ ';
-    animation: blink 1s infinite;
+.form-header {
+  text-align: center;
+  margin-bottom: 36px;
 }
 
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+.form-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
 }
 
-/* --- INPUT FIELDS INTERAKTIF --- */
+.form-header p {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Form fields */
 .form-group {
-    margin-bottom: 25px;
-    position: relative;
+  margin-bottom: 20px;
 }
 
-.form-label {
-    display: block;
-    color: #00bcd4;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: bold;
-    margin-bottom: 8px;
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
 }
 
-.input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+.form-group .input-wrapper {
+  position: relative;
 }
 
-.input-field {
-    width: 100%;
-    padding: 14px 15px 14px 40px;
-    background: rgba(15, 17, 21, 0.8);
-    border: 1px solid rgba(0, 188, 212, 0.3);
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animasi membal */
-    box-sizing: border-box;
+.form-group input {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-bottom: 1.5px solid #e0e0e0;
+  padding: 0 40px 0 0;
+  font-size: 15px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.3s;
 }
 
-/* Efek pop-up & glow pas diketik */
-.input-field:focus {
-    border-color: #00bcd4;
-    background: rgba(0, 188, 212, 0.05);
-    box-shadow: 0 8px 20px rgba(0, 188, 212, 0.2); 
-    transform: translateY(-3px); 
+.form-group input:focus {
+  border-bottom-color: #5B21B6;
 }
 
-.input-field::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+.form-group input::placeholder {
+  color: #ccc;
 }
 
-.field-icon {
-    position: absolute;
-    left: 14px;
-    color: #4a5568;
-    font-size: 15px;
-    pointer-events: none;
-    transition: all 0.3s ease;
+.form-group input[type="password"]:not(:placeholder-shown) {
+  font-family: inherit;
+  letter-spacing: 2px;
 }
 
-/* Ikon ikut membesar dan nyala pas di-klik */
-.input-field:focus + .field-icon,
-.input-wrapper:focus-within .field-icon {
-    color: #00bcd4;
-    transform: scale(1.2);
-    text-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+.toggle-password {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 6px;
+  transition: color 0.2s;
 }
 
-.toggle-icon {
-    position: absolute;
-    right: 14px;
-    color: #4a5568;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.toggle-password:hover { color: #333; }
+
+/* Remember & Forgot */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
 }
 
-.toggle-icon:hover {
-    color: #00bcd4;
-    transform: scale(1.2);
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
 }
 
-/* --- BUTTON NEON LASER --- */
-.submit-btn {
-    width: 100%;
-    padding: 14px;
-    margin-top: 10px;
-    background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(26, 54, 93, 0.5));
-    border: 1px solid #00bcd4;
-    border-radius: 8px;
-    color: #00bcd4;
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #5B21B6;
+  cursor: pointer;
 }
 
-.submit-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.5), transparent);
-    transition: left 0.5s ease;
+.forgot-link {
+  font-size: 13px;
+  color: #5B21B6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
 }
 
-.submit-btn:hover::before {
-    left: 100%;
+.forgot-link:hover { opacity: 0.8; }
+
+/* Buttons */
+.btn-login {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  border: 1.5px solid #1a1a2e;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: all 0.3s;
 }
 
-.submit-btn:hover {
-    background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(26, 54, 93, 0.8));
-    color: #ffffff;
-    border-color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(0, 188, 212, 0.5); /* Nyala terang pas disorot */
+.btn-login .btn-text {
+  display: inline-block;
+  transition: all 0.3s;
 }
 
-/* --- ORNAMEN --- */
-.corner-decoration {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #00bcd4;
-    box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
-}
-.corner-decoration.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-.corner-decoration.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
-.corner-decoration.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
-.corner-decoration.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
-
-.footer-credit {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    width: 100%;
+.btn-login .btn-hover-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #5B21B6;
+  color: #fff;
+  opacity: 0;
+  transition: all 0.3s;
+  border-radius: 25px;
 }
 
-.footer-credit p {
-    color: rgba(0, 188, 212, 0.5);
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin: 0;
-    animation: fadeGlow 3s ease-in-out infinite;
+.btn-login:hover .btn-text {
+  transform: translateX(40px);
+  opacity: 0;
 }
 
-@keyframes fadeGlow {
-    0%, 100% { opacity: 0.5; text-shadow: 0 0 5px rgba(0, 188, 212, 0.2); }
-    50% { opacity: 1; text-shadow: 0 0 15px rgba(0, 188, 212, 0.8); }
+.btn-login:hover .btn-hover-content {
+  opacity: 1;
+}
+
+.btn-google {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  border: 1.5px solid #e0e0e0;
+  background: #f5f5f5;
+  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.btn-google .btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+
+.btn-google .btn-hover-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #5B21B6;
+  color: #fff;
+  opacity: 0;
+  transition: all 0.3s;
+  border-radius: 25px;
+}
+
+.btn-google:hover .btn-text {
+  transform: translateX(40px);
+  opacity: 0;
+}
+
+.btn-google:hover .btn-hover-content {
+  opacity: 1;
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Sign up link */
+.signup-link {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-top: 32px;
+}
+
+.signup-link a {
+  color: #1a1a2e;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.signup-link a:hover { text-decoration: underline; }
+
+/* ============ ANIMATED CHARACTERS ============ */
+.characters-scene {
+  position: relative;
+  width: 480px;
+  height: 360px;
+}
+
+/* Character base styles */
+.character {
+  position: absolute;
+  bottom: 0;
+  transition: all 0.7s ease-in-out;
+  transform-origin: bottom center;
+}
+
+/* Purple rectangle */
+.char-purple {
+  left: 60px;
+  width: 170px;
+  height: 370px;
+  background: #6C3FF5;
+  border-radius: 10px 10px 0 0;
+  z-index: 1;
+}
+
+/* Black rectangle */
+.char-black {
+  left: 220px;
+  width: 115px;
+  height: 290px;
+  background: #2D2D2D;
+  border-radius: 8px 8px 0 0;
+  z-index: 2;
+}
+
+/* Orange semi-circle */
+.char-orange {
+  left: 0;
+  width: 230px;
+  height: 190px;
+  background: #FF9B6B;
+  border-radius: 115px 115px 0 0;
+  z-index: 3;
+}
+
+/* Yellow rounded */
+.char-yellow {
+  left: 290px;
+  width: 135px;
+  height: 215px;
+  background: #E8D754;
+  border-radius: 68px 68px 0 0;
+  z-index: 4;
+}
+
+/* Eyes container */
+.eyes {
+  position: absolute;
+  display: flex;
+  transition: all 0.7s ease-in-out;
+}
+
+/* Eyeball (white with pupil) */
+.eyeball {
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.15s ease;
+  overflow: hidden;
+}
+
+/* Pupil */
+.pupil {
+  border-radius: 50%;
+  background: #2D2D2D;
+  transition: transform 0.1s ease-out;
+}
+
+/* Bare pupil (no white eyeball) */
+.bare-pupil {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2D2D2D;
+  transition: transform 0.7s ease-in-out;
+}
+
+/* Yellow mouth */
+.yellow-mouth {
+  position: absolute;
+  width: 50px;
+  height: 4px;
+  background: #2D2D2D;
+  border-radius: 2px;
+  transition: all 0.7s ease-in-out;
+}
+
+/* Shake-head: smooth left-right oscillation on face parts */
+@keyframes shakeHead {
+  0%, 100% { translate: 0 0; }
+  10%  { translate: -9px 0; }
+  20%  { translate: 7px 0; }
+  30%  { translate: -6px 0; }
+  40%  { translate: 5px 0; }
+  50%  { translate: -4px 0; }
+  60%  { translate: 3px 0; }
+  70%  { translate: -2px 0; }
+  80%  { translate: 1px 0; }
+  90%  { translate: -0.5px 0; }
+}
+
+.eyes.shake-head, .yellow-mouth.shake-head, .orange-mouth.shake-head {
+  animation: shakeHead 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Sad mouth (curved down) for orange character on error */
+.orange-mouth {
+  position: absolute;
+  width: 28px;
+  height: 14px;
+  border: 3px solid #2D2D2D;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  opacity: 0;
+  transition: all 0.7s ease-in-out;
+}
+
+.orange-mouth.visible {
+  opacity: 1;
+}
+
+/* Error styles */
+.error-msg {
+  display: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #dc2626;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.form-group input.error {
+  border-bottom-color: #dc2626;
+}
+
+.form-group label.error-label {
+  color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #login-page { grid-template-columns: 1fr; }
+  .left-panel { display: none; }
 }

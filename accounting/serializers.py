@@ -38,13 +38,8 @@ class JournalEntrySerializer(serializers.ModelSerializer):
         if obj.contact:
             return obj.contact.phone
         return ""
+    
     def get_invoice_details(self, obj):
-        # 1. Ambil Barang & Qty dari InventoryLog (Log HPP)
-        # Log ini menyimpan link ke jurnal HPP, bukan jurnal Penjualan.
-        # Jurnal Penjualan (obj) itu ID-nya beda sama Jurnal HPP (biasanya ID+1 atau ID-1).
-        # TAPI, kita punya 'contact' dan 'date' yang sama.
-        
-        # Cari InventoryLog yang terjadi di hari yang sama, kontak sama, tipe JUAL.
         logs = InventoryLog.objects.filter(
             journal_entry__date=obj.date,
             journal_entry__contact=obj.contact,
